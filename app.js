@@ -40,3 +40,10 @@
 
 // main()
 
+import { collectHours } from "./modules/hours_collector/index.js";
+
+const main =() => {
+    collectHours('..')
+}
+
+main()
