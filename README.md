@@ -34,7 +34,7 @@ Use the following for Google Drive files
 wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=<FILEID>' -O <FILENAME>
 ```
 > Note you can find the file id in Google documents by opening public access and retrieving from
-> pattern https://docs.google.com/spreadsheets/d/<FILEID>/edit?...
+> pattern "https://docs.google.com/spreadsheets/d/<FILEID>/edit?..."
 
 5. Build and run the container
 ```
