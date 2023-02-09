@@ -19,7 +19,7 @@ const generateChart = (container_id, canvas_id) => {
     let current_dataset = mem_data?.[current_member[container_id]]
 
     new Chart(canvas, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: Object.keys(current_dataset),
             datasets: [
@@ -45,7 +45,8 @@ const generateChart = (container_id, canvas_id) => {
                         display: true,
                         text: 'Hours worked',
                         padding: { top: 20, left: 0, right: 0, bottom: 0 }
-                    }
+                    },
+                    suggestedMax: 45
                 }
             }
         }
