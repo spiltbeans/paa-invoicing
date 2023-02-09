@@ -11,10 +11,7 @@ const port = 4000
 app.set('view engine', 'pug')
 app.set('views', path.join(__dirname, '/public/views'))
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.get('/chart.js', (req, res) => {
-    res.sendFile(path.join(__dirname,'/node_modules/chart.js/dist/chart.umd.js'))
-})
+app.use(express.static(path.join(__dirname, 'node_modules')))
 
 app.get('/january-2023', (req, res) => {
     let data = collector.collectHours(process.env.DATA_PATH || "")
