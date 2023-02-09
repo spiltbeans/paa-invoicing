@@ -7,38 +7,43 @@ const ALIASES = require('./ALIASES.json')
  * @returns 
  */
 const parseXL = (path) => {
-    let workbook = xlsx.readFile(path)
-    let sheets = workbook.Sheets
+    try {
+        let workbook = xlsx.readFile(path)
+        let sheets = workbook.Sheets
 
-    // config
-    const QUERY = ['team member', 'team members']       // anchor cell
+        // config
+        const QUERY = ['team member', 'team members']       // anchor cell
 
-    let consolidated_hours = {}
-    for (let sheet in sheets) {
+        let consolidated_hours = {}
+        for (let sheet in sheets) {
 
-        let anchor_cell = ''
+            let anchor_cell = ''
 
-        // find cell associated with QUERY (anchor cell)
-        for (let cell in sheets[sheet]) {
-            let cell_value = sheets[sheet][cell]?.w ?? ""
-            if (QUERY.includes(cell_value.toLowerCase())) {
-                anchor_cell = cell
-                break;
+            // find cell associated with QUERY (anchor cell)
+            for (let cell in sheets[sheet]) {
+                let cell_value = sheets[sheet][cell]?.w ?? ""
+                if (QUERY.includes(cell_value.toLowerCase())) {
+                    anchor_cell = cell
+                    break;
+                }
             }
+
+            let members_hours = findHours(sheets, sheet, anchor_cell)        // find the hours each member has done on this sheet
+
+            // add to consolidated_hours
+            for (let member in members_hours) {
+                if (!(member in consolidated_hours)) consolidated_hours[member] = {}
+
+                consolidated_hours[member][sheet.replaceAll(' ', '')] = members_hours[member]
+            }
+
         }
 
-        let members_hours = findHours(sheets, sheet, anchor_cell)        // find the hours each member has done on this sheet
-
-        // add to consolidated_hours
-        for (let member in members_hours) {
-            if (!(member in consolidated_hours)) consolidated_hours[member] = {}
-
-            consolidated_hours[member][sheet.replaceAll(' ', '')] = members_hours[member]
-        }
-
+        return {'status': true, 'message': `Successfully parsed file`, 'data': consolidated_hours}
+    }catch (e){
+        return {'status': false, 'message': `Error parsing file ${e}`}
     }
-
-    return consolidated_hours
+    
 }
 
 const findHours = (sheets, sheet, anchor_cell) => {
@@ -100,7 +105,12 @@ const consolidateAliases = (hours_data) => {
     return filtered_list
 }
 const collectHours = (path) => {
-    return consolidateAliases(parseXL(path))
+    let parsed_data = parseXL(path)
+    if(parsed_data.status){
+        return consolidateAliases(parsed_data.data)
+    } 
+
+    return {}
 }
 
 const findMax = (list) => {
@@ -109,13 +119,13 @@ const findMax = (list) => {
     for (let member in list) {
 
         for (let client in list[member]) {
-            if (parseFloat(list[member][client]) > max){
+            if (parseFloat(list[member][client]) > max) {
                 max = parseFloat(list[member][client])
                 leader = member
             }
         }
     }
-    return {'leader': leader, 'max': max}
+    return { 'leader': leader, 'max': max }
 }
 
 
