@@ -1,3 +1,42 @@
+const express = require('express')
+const path = require('path')
+const collector = require('./modules/hours_collector/index')
+
+const WORK_DIR = './data/hours_collector/'
+const FILE_NAME = 'work_description.xlsx'
+
+const app = express()
+const port = 4000
+app.set('view engine', 'pug')
+app.set('views', path.join(__dirname, '/public/views'))
+app.use(express.static(path.join(__dirname, '/public')));
+
+app.get('/loadChart.js', (req, res) => {
+    res.sendFile(path.join(__dirname,'/public/scripts/loadChart.js'))
+})
+app.get('/styles.css', (req, res) => {
+    res.sendFile(path.join(__dirname,'/public/styles/styles.css'))
+})
+app.get('/chart.js', (req, res) => {
+    res.sendFile(path.join(__dirname,'/node_modules/chart.js/dist/chart.umd.js'))
+})
+
+app.get('/', (req, res) => {
+    let data = collector.collectHours(WORK_DIR+FILE_NAME)
+    res.render('index', {data: JSON.stringify(data)})
+})
+
+
+app.listen(port, ()=> {console.log(`connected to port: ${port}`)})
+
+
+// const main =() => {
+//     collectHours(WORK_DIR+FILE_NAME)
+// }
+
+
+
+
 // import 
 // const main = () => {
 //     var workbook = xlsx.readFile(sheet_name);
@@ -39,11 +78,3 @@
 // }
 
 // main()
-
-import { collectHours } from "./modules/hours_collector/index.js";
-
-const main =() => {
-    collectHours('..')
-}
-
-main()

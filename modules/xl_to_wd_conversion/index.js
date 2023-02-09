@@ -19,9 +19,6 @@
 // const wd_sheet_name = "./data/wdsize.xlsx"
 // const wd_ignore_empty = true
 // const wd_info_insert_name = "./data/wd_sheets.xlsx"
-// //references
-// //https://runkit.com/dolanmiu/docx-demo10
-// //https://github.com/dolanmiu/docx/tree/29f421686fc5e0d0bd1aa6ef7c2d639d3ec1c26e/docs/usage
 
 // const get_contact_json = () => {
 //     var workbook_read = xlsx.readFile(info_sheet_name);

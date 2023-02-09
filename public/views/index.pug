@@ -1,0 +1,16 @@
+html
+    head
+        script(src="chart.js")
+        script(src="loadChart.js")
+        link(rel='stylesheet', href='styles.css')
+
+    body
+        p(class="title") Employees 
+        button(onClick='populate('+data+')') Populate the data
+        div(class='controls')
+            select(class='hidden' id='selector1' data-container='chart_container1' data-canvas='canvas1')
+            select(class='hidden' id='selector2' data-container='chart_container2' data-canvas='canvas2')
+        div(class='data')
+            div(class='canvas' id='chart_container1')
+            div(class='canvas' id='chart_container2')
+            

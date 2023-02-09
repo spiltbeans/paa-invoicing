@@ -1,0 +1,17 @@
+.title{
+    font-size: 1.5rem;
+}
+
+.controls{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+.data{
+    display: grid;
+    grid-template-columns: repeat(2, 50%);
+}
+
+.hidden{
+    display: none;
+}
