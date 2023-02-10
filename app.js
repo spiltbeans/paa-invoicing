@@ -1,5 +1,5 @@
 const dotenv = require('dotenv').config()	//DELETE CODE ON PRODUCTION
-
+const dictator = require('console-dictation').config()
 const express = require('express')
 const path = require('path')
 const collector = require('./modules/hours_collector/index')
@@ -20,4 +20,4 @@ app.get('/january-2023', (req, res) => {
 })
 
 
-app.listen(port, ()=> {console.log(`connected to port: ${port}`)})
+app.listen(port, ()=> {dictator.system(`connected to port: ${port}`)})
