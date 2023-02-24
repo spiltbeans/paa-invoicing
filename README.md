@@ -24,7 +24,7 @@ DATA_PATH=<DATA_FILE_PATH>
 
 3. Create the file path
 ```
-mkdir /data/hours_collector && cd /data/hours_collector
+mkdir -p ./data/hours_collector && cd ./data/hours_collector
 ```
 
 4. Copy the work_descriptions file into the data folder
