@@ -15,7 +15,6 @@ app.use(express.static(path.join(__dirname, 'node_modules')))
 
 app.get('/january-2023', (req, res) => {
     let data = collector.collectHours(process.env.DATA_PATH || "")
-    //console.log(data)
     res.render('index', {data: JSON.stringify(data)})
 })
 

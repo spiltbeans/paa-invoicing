@@ -83,7 +83,6 @@ const handleChangeDisplay = (id) => {
     let options = ['clients', 'employees', 'ind_employees']
     for(let option of options){
         if(option === id){
-            console.log(id)
             let cnt = document.getElementById(`cnt_${option}`)
             cnt.removeAttribute('class', 'hidden')
         }else{
