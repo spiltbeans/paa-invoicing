@@ -1,7 +1,12 @@
 .title{
     font-size: 1.5rem;
+    text-align: center;
 }
 
+.populate{
+    display: flex;
+    margin-inline:auto;
+}
 .controls{
     display: flex;
     flex-direction: row;
@@ -14,4 +19,20 @@
 
 .hidden{
     display: none;
+}
+
+.sys-message{
+    display: flex;
+    justify-content: center;
+}
+.success{
+    color: #10b981;
+}
+.fail{
+    color:#f43f5e;
+}
+.display-controls{
+    display:flex;
+    justify-content: center;
+    margin-block:1.5rem;
 }

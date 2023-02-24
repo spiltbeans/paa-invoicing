@@ -1,3 +1,4 @@
+const dictator = require('console-dictation').config()
 const xlsx = require('xlsx')
 const ALIASES = require('./ALIASES.json')
 /**
@@ -39,9 +40,9 @@ const parseXL = (path) => {
 
         }
 
-        return {'status': true, 'message': `Successfully parsed file`, 'data': consolidated_hours}
+        return {'status': true, 'message': `Successfully parsed file ${path}`, 'data': consolidated_hours}
     }catch (e){
-        return {'status': false, 'message': `Error parsing file ${e}`}
+        return {'status': false, 'message': `Error parsing file ${path} ${e}`}
     }
     
 }
@@ -104,12 +105,47 @@ const consolidateAliases = (hours_data) => {
 
     return filtered_list
 }
+const clientHours = (data) => {
+    let clients = {}
+    for(let employee in data){
+        for(let client in data[employee]){
+            if(clients.hasOwnProperty(client)){
+                clients[client] += data[employee][client]
+            }else{
+                clients[client] = data[employee][client]
+            }
+        }
+    }
+    return clients
+
+}
+
+const employeeHours = (data) => {
+    let employees = {}
+    
+    for(let employee in data){
+        let running = 0
+        for(let client in data[employee]){
+            running += data[employee][client]
+        }
+        if(employees.hasOwnProperty(employee)){
+            employees[employee] += running
+        }else{
+            employees[employee] = running
+        }
+    }
+    return employees
+}
 const collectHours = (path) => {
     let parsed_data = parseXL(path)
     if(parsed_data.status){
-        return consolidateAliases(parsed_data.data)
+        dictator.system(parsed_data.message)
+        let consolidated_data = consolidateAliases(parsed_data.data)
+        
+        
+        return {client: clientHours(consolidated_data), employee: employeeHours(consolidated_data), ind_employee: consolidated_data}
     } 
-
+    dictator.error(parsed_data.message)
     return {}
 }
 
@@ -126,7 +162,7 @@ const findMax = (list) => {
         }
     }
     return { 'leader': leader, 'max': max }
-}
+}       
 
 
 module.exports = { collectHours }
