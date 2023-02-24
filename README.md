@@ -42,6 +42,7 @@ docker-compose build && docker-compose up -d
 ```
 
 ## References
-- https://runkit.com/dolanmiu/docx-demo10
-- https://github.com/dolanmiu/docx/tree/29f421686fc5e0d0bd1aa6ef7c2d639d3ec1c26e/docs/usage
-- https://www.npmjs.com/package/xlsx
+- [Docx example](https://runkit.com/dolanmiu/docx-demo10)
+- [Docx documentation](https://docx.js.org/#/?id=welcome)
+- [Docx specific styling](https://github.com/dolanmiu/docx/tree/29f421686fc5e0d0bd1aa6ef7c2d639d3ec1c26e/docs/usage)
+- [Xlsx documentation](https://www.npmjs.com/package/xlsx)
