@@ -2,3 +2,4 @@
 /data
 .env
 /logs
+/modules/hours_collector/ALIASES.json

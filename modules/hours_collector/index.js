@@ -1,6 +1,8 @@
 const dictator = require('console-dictation').config()
 const xlsx = require('xlsx')
 const ALIASES = require('./ALIASES.json')
+const EXCLUDE = ['teammember', 'total', 'teammembers', 'grandtotal(amazon&awsfed&provincial)']
+
 /**
  * The goal of this parse is to go through each sheet and find the team member 
  * and their correlated hours
@@ -17,6 +19,7 @@ const parseXL = (path) => {
 
         let consolidated_hours = {}
         for (let sheet in sheets) {
+            if (sheet.toLowerCase() === 'navigation') continue
 
             let anchor_cell = ''
 
@@ -31,20 +34,21 @@ const parseXL = (path) => {
 
             let members_hours = findHours(sheets, sheet, anchor_cell)        // find the hours each member has done on this sheet
 
-            // add to consolidated_hours
-            for (let member in members_hours) {
-                if (!(member in consolidated_hours)) consolidated_hours[member] = {}
+            consolidated_hours[sheet.replaceAll(' ', '')] = members_hours
+            // // add to consolidated_hours
+            // for (let member in members_hours) {
+            //     if (!(member in consolidated_hours)) consolidated_hours[member] = {}
 
-                consolidated_hours[member][sheet.replaceAll(' ', '')] = members_hours[member]
-            }
+            //     consolidated_hours[member][sheet.replaceAll(' ', '')] = members_hours[member]
+            // }
 
         }
 
-        return {'status': true, 'message': `Successfully parsed file ${path}`, 'data': consolidated_hours}
-    }catch (e){
-        return {'status': false, 'message': `Error parsing file ${path} ${e}`}
+        return { 'status': true, 'message': `Successfully parsed file ${path}`, 'data': consolidated_hours }
+    } catch (e) {
+        return { 'status': false, 'message': `Error parsing file ${path} ${e}` }
     }
-    
+
 }
 
 const findHours = (sheets, sheet, anchor_cell) => {
@@ -56,8 +60,8 @@ const findHours = (sheets, sheet, anchor_cell) => {
 
     for (let c of anchor_cell) {
         if (isNaN(c)) anchor_column += c
-
     }
+
     adjacent_column = String.fromCharCode(anchor_column.charCodeAt() + 1)      // find the adjacent column for hours
 
     for (let cell in sheets[sheet]) {
@@ -105,46 +109,97 @@ const consolidateAliases = (hours_data) => {
 
     return filtered_list
 }
+
 const clientHours = (data) => {
     let clients = {}
-    for(let employee in data){
-        for(let client in data[employee]){
-            if(clients.hasOwnProperty(client)){
-                clients[client] += data[employee][client]
-            }else{
-                clients[client] = data[employee][client]
-            }
+    for (let client in data) {
+        clients[client] = 0
+        for (let employee in data[client]) {
+            if (employee.toLowerCase() === 'total') clients[client] += parseFloat(data[client][employee]) || 0
         }
     }
     return clients
-
 }
 
-const employeeHours = (data) => {
-    let employees = {}
-    
-    for(let employee in data){
-        let running = 0
-        for(let client in data[employee]){
-            running += data[employee][client]
+const filterAliases = (data) => {
+    let filtered_list = {}
+
+    // populate filtered list
+    for (let member in data) {
+        let name = member
+        for (let correct_name in ALIASES) {
+            for (let alias of ALIASES[correct_name]) {
+                if (member === alias) name = correct_name
+            }
         }
-        if(employees.hasOwnProperty(employee)){
-            employees[employee] += running
-        }else{
-            employees[employee] = running
+        if (filtered_list.hasOwnProperty(name)) {
+            filtered_list[name] += data[member]
+        } else {
+            filtered_list[name] = data[member]
         }
     }
-    return employees
+
+    return filtered_list
+}
+const employeeHours = (data) => {
+    let employees = {}
+    for (let client in data) {
+        for (let employee in data[client]) {
+            if (EXCLUDE.includes(employee.toLowerCase())) continue
+            if (employees.hasOwnProperty(employee)) {
+                employees[employee] += parseFloat(data[client][employee]) || 0
+            } else {
+                employees[employee] = parseFloat(data[client][employee]) || 0
+            }
+        }
+    }
+
+    return filterAliases(employees)
+}
+const fAliases = (data) => {
+    let filtered_list = {}
+    for (let member in data) {
+        let name = member
+        for (let correct_name in ALIASES) {
+            for (let alias of ALIASES[correct_name]) {
+                if (member === alias) name = correct_name
+            }
+        }
+        if (filtered_list.hasOwnProperty(name)) {
+            filtered_list[name] = {...filtered_list[name], ...data[member]}
+        } else {
+            filtered_list[name] = data[member]
+        }
+    }
+    return filtered_list
+}
+const individualEmployees = (data) => {
+    let employees = {}
+    for (let client in data) {
+        for (let employee in data[client]) {
+            if (EXCLUDE.includes(employee.toLowerCase())) continue
+            if (employees.hasOwnProperty(employee)) {
+                employees[employee] = { ...employees[employee], ...({ [client]: parseFloat(data[client][employee]) || 0 }) }
+            } else {
+                employees[employee] = { [client]: parseFloat(data[client][employee]) || 0 }
+            }
+
+        }
+    }
+    console.log(fAliases(employees))
 }
 const collectHours = (path) => {
     let parsed_data = parseXL(path)
-    if(parsed_data.status){
+    if (parsed_data.status) {
+
         dictator.system(parsed_data.message)
-        let consolidated_data = consolidateAliases(parsed_data.data)
-        
-        
-        return {client: clientHours(consolidated_data), employee: employeeHours(consolidated_data), ind_employee: consolidated_data}
-    } 
+
+        individualEmployees(parsed_data.data)
+        //let consolidated_data = consolidateAliases(parsed_data.data)
+        //clientHours(consolidated_data)
+        //consolidated_data
+        return { client: clientHours(parsed_data.data), employee: employeeHours(parsed_data.data), ind_employee: { 'ma': 1 } }
+    }
     dictator.error(parsed_data.message)
     return {}
 }
@@ -162,7 +217,7 @@ const findMax = (list) => {
         }
     }
     return { 'leader': leader, 'max': max }
-}       
+}
 
 
 module.exports = { collectHours }
