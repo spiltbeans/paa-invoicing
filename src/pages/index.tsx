@@ -4,8 +4,8 @@ import dynamic from 'next/dynamic'
 import { Box, ToggleButtonGroup, ToggleButton, Tooltip, AccordionSummary, Accordion, AccordionDetails, Badge, TextField, Autocomplete, Fab } from '@mui/material'
 import { Add, ExpandMore, Close, ArrowBack, ArrowForward } from '@mui/icons-material'
 const SimpleBarChartWithoutSSR = dynamic(import('@/shared/components/Chart'), { ssr: false })
-import { FormattedData, ErrSheets, GraphItem, DataItem } from '@/shared/types/types'
-import { processXLS, dataFormatter } from './api/modules/parse_xls'
+import { ErrSheets, GraphItem, DataItem } from '@/shared/types/types'
+import { processXLS, dataFormatter } from '../shared/modules/parse_xls'
 
 
 export async function getServerSideProps() {

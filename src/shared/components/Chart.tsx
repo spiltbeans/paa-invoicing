@@ -20,8 +20,6 @@ export default function Chart({ data, maxValue }: { data: Array<DataItem>, maxVa
 	return (
 		<ResponsiveContainer width={'100%'} height={300}>
 			<BarChart
-				// width={'95%'}
-				// height={300}
 				data={sortedData}
 				margin={{
 					top: 5,
