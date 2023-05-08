@@ -1,17 +1,19 @@
+// types for graph
 export type DataItem = {
 	label: string,
 	value: number
 }
+export interface FormattedData {
+	[graph_label: string]: Array<DataItem>
+}
+
+
 
 export interface APIRequestResponse {
 	status: boolean,
 	message: string,
 	data: any,
-	error?: any
-}
-
-export interface FormattedData {
-	[data_label: string]: Array<DataItem>
+	errors?: any
 }
 
 export interface APIXLSParser extends Omit<APIRequestResponse, 'data'> {
@@ -19,7 +21,7 @@ export interface APIXLSParser extends Omit<APIRequestResponse, 'data'> {
 }
 
 export interface ErrSheets {
-	[client_name: string]: any
+	[error_source: string]: any
 }
 
 export interface EmployeeHours {
@@ -37,8 +39,4 @@ export interface ClientHours{
 
 export interface CCHours{
 	[employee_name: string]: ClientHours
-}
-export interface GraphItem{
-	label: string,
-	graph_id: string
 }
