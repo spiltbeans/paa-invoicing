@@ -1,5 +1,7 @@
 import * as React from 'react'
 import { useState, useMemo, useEffect } from 'react'
+import { useRouter } from 'next/router'
+import axios from 'axios'
 import dynamic from 'next/dynamic'
 import {
 	Box,
@@ -15,6 +17,8 @@ import {
 	Fab,
 	Select,
 	MenuItem,
+	Snackbar,
+	Alert
 } from '@mui/material'
 import { SelectChangeEvent } from '@mui/material'
 import { Add, ExpandMore, Close, ArrowBack, ArrowForward } from '@mui/icons-material'
@@ -46,8 +50,11 @@ export default function Home({ data }: { data: DSheets }) {
 	const [yRelative, setYRelative] = useState(true)
 	const [controlsOpen, setControlsOpen] = useState(true)
 
+	const router = useRouter()
+	const [warning, setWarning] = useState('')
+
 	useEffect(() => {
-		const e = data[documentSelect].errors
+		const e = data[documentSelect]?.errors
 
 		if (e !== undefined && Object.keys(e).length > 1) {
 			setEExists(true)
@@ -87,9 +94,35 @@ export default function Home({ data }: { data: DSheets }) {
 		return Math.max(...graph_values)
 	}, [data, displayType, documentSelect])
 
+	// https://gist.github.com/ndpniraj/2735c3af00a7c4cbe50602ffe6209fc3
+	// https://stackoverflow.com/questions/59233036/react-typescript-get-files-from-file-input
+	const handleFileUpload = (e: React.FormEvent<HTMLInputElement>) => {
+		try {
+			if (e.currentTarget?.files) {
+				const file = e.currentTarget.files[0]
 
+				if (!file) return
+
+				const formData = new FormData()
+				formData.append('newFile', file)
+				axios.post('/api/xlsx', formData)
+					.then(({ data }) => {
+						if (data.status) return refreshProps()
+
+						setWarning(data.message)
+					})
+			}
+		} catch (err: any) {
+			setWarning(JSON.stringify(err))
+		}
+
+	}
+
+	const refreshProps = () => {
+		router.replace(router.asPath)
+	}
 	const err = useMemo(() => {
-		let e = data[documentSelect].errors
+		let e = data[documentSelect]?.errors
 
 		if (e === undefined) return <></>
 
@@ -112,7 +145,7 @@ export default function Home({ data }: { data: DSheets }) {
 			)
 		})
 	}, [data, documentSelect])
-	
+
 	const handlePerspectiveChange = (e: React.MouseEvent<HTMLElement>, t: string) => {
 		if (t !== null) {
 			setGraphs([])
@@ -172,7 +205,7 @@ export default function Home({ data }: { data: DSheets }) {
 									</Fab>
 									{label}
 								</div>
-								<SimpleBarChartWithoutSSR data={data?.[documentSelect]['data']?.[displayType]?.[label ?? ''] ?? []} maxValue={yRelative ? undefined : maxValue} />
+								<SimpleBarChartWithoutSSR data={data?.[documentSelect]?.['data']?.[displayType]?.[label ?? ''] ?? []} maxValue={yRelative ? undefined : maxValue} />
 							</div>
 						)
 					})}
@@ -208,7 +241,7 @@ export default function Home({ data }: { data: DSheets }) {
 									<hr />
 								</h2>
 								<Tooltip title="replace data by uploading a sheet with the same name">
-									<input type='file'></input>
+									<input type='file' onChange={handleFileUpload}></input>
 								</Tooltip>
 							</section>
 							<section className='flex flex-col gap-4'>
@@ -243,7 +276,7 @@ export default function Home({ data }: { data: DSheets }) {
 										disablePortal
 										freeSolo
 										id={'graph_input'}
-										options={Object.keys(data?.[documentSelect]['data']?.[displayType] ?? [])}
+										options={Object.keys(data?.[documentSelect]?.['data']?.[displayType] ?? [])}
 										onChange={handleSearchChange}
 										className={'w-1/2'}
 										renderInput={(params) => <TextField {...params} label={'Graph Name'} />}
@@ -259,6 +292,11 @@ export default function Home({ data }: { data: DSheets }) {
 
 				</div>
 			</div>
+			<Snackbar open={!!warning} autoHideDuration={6000} onClose={() => setWarning('')}>
+				<Alert onClose={() => setWarning('')} severity={'error'} sx={{ width: '100%' }}>
+					{warning}
+				</Alert>
+			</Snackbar>
 		</Box>
 	)
 }
