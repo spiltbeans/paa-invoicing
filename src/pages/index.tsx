@@ -1,46 +1,62 @@
 import * as React from 'react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { Box, ToggleButtonGroup, ToggleButton, Tooltip, AccordionSummary, Accordion, AccordionDetails, Badge, TextField, Autocomplete, Fab } from '@mui/material'
+import {
+	Box,
+	ToggleButtonGroup,
+	ToggleButton,
+	Tooltip,
+	AccordionSummary,
+	Accordion,
+	AccordionDetails,
+	Badge,
+	TextField,
+	Autocomplete,
+	Fab,
+	Select,
+	MenuItem,
+} from '@mui/material'
+import { SelectChangeEvent } from '@mui/material'
 import { Add, ExpandMore, Close, ArrowBack, ArrowForward } from '@mui/icons-material'
 const SimpleBarChartWithoutSSR = dynamic(import('@/shared/components/Chart'), { ssr: false })
-import { ErrSheets, GraphItem, DataItem } from '@/shared/types/types'
-import { processXLS, dataFormatter } from '../shared/modules/parse_xls'
-
+import { DataItem, DSheets } from '@/shared/types/types'
+import { load_data_sheets } from '@/shared/modules/load_datasheets'
 
 export async function getServerSideProps() {
-	// const { data, error, message, status } = processXLS('/data/work_description-23-02-24.xlsx')
-	const { data, error, message, status } = processXLS('/data/work_description-22-12.xlsx')
 
-	const { clients, individual_clients, employees, individual_employees } = data
-	// Pass data to the page via props
 	return {
 		props: {
-			data: ({
-				individual_clients: dataFormatter(individual_clients),
-				employees: dataFormatter(employees),
-				individual_employees: dataFormatter(individual_employees),
-				clients: dataFormatter(clients)
-			}),
-			error
+			data: load_data_sheets(),
 		}
 	}
 }
 
-export default function Home({ data, error }: { data: any, error: ErrSheets }) {
-	const [displayType, setDisplayType] = useState('clients')
-	const [yRelative, setYRelative] = useState(true)
+export default function Home({ data }: { data: DSheets }) {
+	const [documentSelect, setDocumentSelect] = useState(Object.keys(data)[0] ?? '')
+
+	// search state
 	const [currSearch, setCurrSearch] = useState<string | null>('')
-	const [controlsOpen, setControlsOpen] = useState(true)
-	const [displayErrorExists, setEExists] = useState(Object.keys(error).length > 1)
 	const [graphs, setGraphs] = useState<Array<string | undefined>>([])
 
-	const handleSearchChange = (event: React.SyntheticEvent<Element, Event>, value: GraphItem | string | null) => {
-		if (typeof value === 'object') {
-			setCurrSearch(value?.graph_id ?? '')
-		} else {
-			setCurrSearch(value ?? '')
+	// indicate if error was sent to client
+	const [displayErrorExists, setEExists] = useState(false)
+
+	// display options
+	const [displayType, setDisplayType] = useState('clients')
+	const [yRelative, setYRelative] = useState(true)
+	const [controlsOpen, setControlsOpen] = useState(true)
+
+	useEffect(() => {
+		const e = data[documentSelect].errors
+
+		if (e !== undefined && Object.keys(e).length > 1) {
+			setEExists(true)
 		}
+
+	}, [data, documentSelect])
+
+	const handleSearchChange = (event: React.SyntheticEvent<Element, Event>, value: string | null) => {
+		setCurrSearch(value ?? '')
 	}
 
 	// const all_graphs = Object.keys(data).map(client => ({ label: client, graph_id: client.replaceAll(' ', '').toLowerCase() }))
@@ -58,9 +74,45 @@ export default function Home({ data, error }: { data: any, error: ErrSheets }) {
 
 
 	const maxValue = useMemo(() => {
-		return Math.max(...((Object.keys(data?.[displayType] ?? []).map(client => data[displayType][client].map((d: DataItem) => d.value))).flat()) || [0])
-	}, [data, displayType])
 
+		const d = data[documentSelect]?.data
+
+		if (d === undefined) return 0
+
+		const graph_labels: Array<string> = (Object.keys(d?.[displayType]))
+		const graph_values: Array<number> = graph_labels.map(label => (
+			(d?.[displayType]?.[label]).map((element: DataItem) => element.value)
+		)).flat()
+
+		return Math.max(...graph_values)
+	}, [data, displayType, documentSelect])
+
+
+	const err = useMemo(() => {
+		let e = data[documentSelect].errors
+
+		if (e === undefined) return <></>
+
+		return Object.keys(e ?? []).map((source, idx) => {
+			return (
+				<div key={idx}>
+					{source}
+					<ul className='list-disc ml-8'>
+						{
+							(Object.keys(e?.[source])?.map((err, sub_idx) => {
+								return (
+									<li key={`${idx}_${sub_idx}`}>
+										{e[source][err]}
+									</li>
+								)
+							}))
+						}
+					</ul>
+				</div>
+			)
+		})
+	}, [data, documentSelect])
+	
 	const handlePerspectiveChange = (e: React.MouseEvent<HTMLElement>, t: string) => {
 		if (t !== null) {
 			setGraphs([])
@@ -69,6 +121,11 @@ export default function Home({ data, error }: { data: any, error: ErrSheets }) {
 		}
 	}
 
+	const handleDocumentChange = (event: SelectChangeEvent) => {
+		setDocumentSelect(event.target.value as string)
+		setGraphs([])
+		setCurrSearch('')
+	}
 	return (
 		<Box
 			sx={{
@@ -85,49 +142,37 @@ export default function Home({ data, error }: { data: any, error: ErrSheets }) {
 			<div id='data-input' className='flex flex-col justify-center gap-4'>
 
 				<Accordion onChange={(event: React.SyntheticEvent, expanded: boolean) => displayErrorExists ? setEExists(false) : undefined}>
-					<AccordionSummary expandIcon={<ExpandMore />} >
-						<Badge
-							color="warning"
-							anchorOrigin={{
-								vertical: 'top',
-								horizontal: 'left',
-							}}
-							variant="dot"
-							invisible={!displayErrorExists}
-						>
+					<Badge
+						color="warning"
+						anchorOrigin={{
+							vertical: 'top',
+							horizontal: 'left',
+						}}
+						variant="dot"
+						invisible={!displayErrorExists}
+					>
+						<AccordionSummary expandIcon={<ExpandMore />} >
 							Errors
-						</Badge>
-					</AccordionSummary>
+						</AccordionSummary>
+					</Badge>
 					<AccordionDetails>
-						{Object.keys(error).map((client, idx) => {
-							return (
-								<div key={idx}>
-									{client}
-									<ul className='list-disc ml-8'>
-										{(Object.keys(error?.[client])?.map((err, sub_idx) => {
-											return <li key={`${idx}_${sub_idx}`}>{error[client][err]}</li>
-										}))}
-
-									</ul>
-								</div>
-							)
-						})}
+						{err}
 					</AccordionDetails>
 				</Accordion>
 
 			</div>
 			<div id='display-space' className='flex w-full gap-4'>
 				<div id='data-charts' className={`flex flex-col ${controlsOpen ? 'w-3/4' : 'w-full'} border gap-4 py-4`}>
-					{graphs?.map((client, idx) => {
+					{graphs?.map((label, idx) => {
 						return (
 							<div id='data-chart' className='w-full' key={idx}>
 								<div className='flex items-center gap-5 ml-8 my-4'>
-									<Fab size='small' onClick={() => handleRemoveGraph(client ?? '')}>
+									<Fab size='small' onClick={() => handleRemoveGraph(label ?? '')}>
 										<Close />
 									</Fab>
-									{client}
+									{label}
 								</div>
-								<SimpleBarChartWithoutSSR data={data?.[displayType]?.[client ?? '']} maxValue={yRelative ? undefined : maxValue} />
+								<SimpleBarChartWithoutSSR data={data?.[documentSelect]['data']?.[displayType]?.[label ?? ''] ?? []} maxValue={yRelative ? undefined : maxValue} />
 							</div>
 						)
 					})}
@@ -143,9 +188,17 @@ export default function Home({ data, error }: { data: any, error: ErrSheets }) {
 									Select from already existing data
 									<hr />
 								</h2>
-								<select>
-									<option>test</option>
-								</select>
+								<div>
+									<Select
+										value={documentSelect}
+										onChange={handleDocumentChange}
+									>
+										{Object.keys(data).map((document, idx) => {
+											return <MenuItem key={idx} value={document}>{document}</MenuItem>
+										})}
+									</Select>
+								</div>
+
 							</section>
 
 							<section className='flex flex-col gap-4'>
@@ -190,7 +243,7 @@ export default function Home({ data, error }: { data: any, error: ErrSheets }) {
 										disablePortal
 										freeSolo
 										id={'graph_input'}
-										options={Object.keys(data?.[displayType] ?? [])}
+										options={Object.keys(data?.[documentSelect]['data']?.[displayType] ?? [])}
 										onChange={handleSearchChange}
 										className={'w-1/2'}
 										renderInput={(params) => <TextField {...params} label={'Graph Name'} />}
