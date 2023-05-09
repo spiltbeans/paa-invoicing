@@ -2,7 +2,7 @@ import xlsx from 'xlsx'
 import path from 'path'
 import { whitelist, known_errors } from '@/shared/whitelist'
 import type {
-	APIRequestResponse,
+	PXLSResponse,
 	FormattedData,
 	ErrSheets,
 	EmployeeHours,
@@ -142,7 +142,7 @@ const sanitizeData = (data: EmployeeHours): SanitizedDataResponse => {
 }
 
 
-export const processXLS = (relative_path: string): APIRequestResponse => {
+export const processXLS = (relative_path: string): PXLSResponse => {
 
 	try {
 		const new_path = path.join(process.cwd(), relative_path)
@@ -191,7 +191,7 @@ export const processXLS = (relative_path: string): APIRequestResponse => {
 			errors: error_sheets
 		}
 	} catch (e: Error | unknown) {
-		return { status: false, message: `unsuccessful ${e}`, data: null, errors: (e) }
+		return { status: false, message: `unsuccessful ${e}`, errors: (e) }
 	}
 
 }

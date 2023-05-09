@@ -7,19 +7,6 @@ export interface FormattedData {
 	[graph_label: string]: Array<DataItem>
 }
 
-
-
-export interface APIRequestResponse {
-	status: boolean,
-	message: string,
-	data: any,
-	errors?: any
-}
-
-export interface APIXLSParser extends Omit<APIRequestResponse, 'data'> {
-	data: FormattedData
-}
-
 export interface ErrSheets {
 	[error_source: string]: any
 }
@@ -33,10 +20,31 @@ export interface ConsolidatedHours {
 }
 
 
-export interface ClientHours{
+export interface ClientHours {
 	[client_name: string]: number
 }
 
-export interface CCHours{
+export interface CCHours {
 	[employee_name: string]: ClientHours
+}
+export interface SPayload {
+	[graph_type: string]: ConsolidatedHours | CCHours | {
+		[sub_type: string]: EmployeeHours | ClientHours
+	}
+}
+
+export interface PXLSResponse {
+	status: boolean,
+	message: string,
+	data?: SPayload,
+	errors: ErrSheets | Error | unknown
+}
+
+export interface DSheets {
+	[sheet_name: string]: {
+		data?: {
+			[graph_type: string]: FormattedData
+		},
+		errors: ErrSheets | any,
+	}
 }

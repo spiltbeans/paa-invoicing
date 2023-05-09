@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import {
 	Box,
@@ -15,44 +15,45 @@ import {
 	Fab,
 	Select,
 	MenuItem,
-	InputLabel
 } from '@mui/material'
 import { SelectChangeEvent } from '@mui/material'
 import { Add, ExpandMore, Close, ArrowBack, ArrowForward } from '@mui/icons-material'
 const SimpleBarChartWithoutSSR = dynamic(import('@/shared/components/Chart'), { ssr: false })
-import { ErrSheets, DataItem } from '@/shared/types/types'
-import { processXLS, dataFormatter } from '../shared/modules/parse_xls'
+import { DataItem, DSheets } from '@/shared/types/types'
 import { load_data_sheets } from '@/shared/modules/load_datasheets'
 
 export async function getServerSideProps() {
-	// const { data, errors, message, status } = processXLS('/data/work_description-23-02-24.xlsx')
-	// const { data, errors, message, status } = processXLS('/data/work_description-22-12.xlsx')
 
-
-	// const { clients, individual_clients, employees, individual_employees } = data
-	// Pass data to the page via props
 	return {
 		props: {
 			data: load_data_sheets(),
-			// ({
-			// 	individual_clients: dataFormatter(individual_clients),
-			// 	employees: dataFormatter(employees),
-			// 	individual_employees: dataFormatter(individual_employees),
-			// 	clients: dataFormatter(clients)
-			// }),
-			errors: {}
 		}
 	}
 }
 
-export default function Home({ data, errors }: { data: any, errors: any }) {
+export default function Home({ data }: { data: DSheets }) {
+	const [documentSelect, setDocumentSelect] = useState(Object.keys(data)[0] ?? '')
+
+	// search state
+	const [currSearch, setCurrSearch] = useState<string | null>('')
+	const [graphs, setGraphs] = useState<Array<string | undefined>>([])
+
+	// indicate if error was sent to client
+	const [displayErrorExists, setEExists] = useState(false)
+
+	// display options
 	const [displayType, setDisplayType] = useState('clients')
 	const [yRelative, setYRelative] = useState(true)
-	const [currSearch, setCurrSearch] = useState<string | null>('')
 	const [controlsOpen, setControlsOpen] = useState(true)
-	const [displayErrorExists, setEExists] = useState(Object.keys(errors).length > 1)
-	const [graphs, setGraphs] = useState<Array<string | undefined>>([])
-	const [documentSelect, setDocumentSelect] = useState(Object.keys(data)[0])
+
+	useEffect(() => {
+		const e = data[documentSelect].errors
+
+		if (e !== undefined && Object.keys(e).length > 1) {
+			setEExists(true)
+		}
+
+	}, [data, documentSelect])
 
 	const handleSearchChange = (event: React.SyntheticEvent<Element, Event>, value: string | null) => {
 		setCurrSearch(value ?? '')
@@ -73,14 +74,45 @@ export default function Home({ data, errors }: { data: any, errors: any }) {
 
 
 	const maxValue = useMemo(() => {
-		const graph_labels: Array<string> = (Object.keys(data?.[documentSelect]?.[displayType]))
+
+		const d = data[documentSelect]?.data
+
+		if (d === undefined) return 0
+
+		const graph_labels: Array<string> = (Object.keys(d?.[displayType]))
 		const graph_values: Array<number> = graph_labels.map(label => (
-			(data?.[documentSelect]?.[displayType]?.[label]).map((element: DataItem) => element.value)
+			(d?.[displayType]?.[label]).map((element: DataItem) => element.value)
 		)).flat()
 
 		return Math.max(...graph_values)
 	}, [data, displayType, documentSelect])
 
+
+	const err = useMemo(() => {
+		let e = data[documentSelect].errors
+
+		if (e === undefined) return <></>
+
+		return Object.keys(e ?? []).map((source, idx) => {
+			return (
+				<div key={idx}>
+					{source}
+					<ul className='list-disc ml-8'>
+						{
+							(Object.keys(e?.[source])?.map((err, sub_idx) => {
+								return (
+									<li key={`${idx}_${sub_idx}`}>
+										{e[source][err]}
+									</li>
+								)
+							}))
+						}
+					</ul>
+				</div>
+			)
+		})
+	}, [data, documentSelect])
+	
 	const handlePerspectiveChange = (e: React.MouseEvent<HTMLElement>, t: string) => {
 		if (t !== null) {
 			setGraphs([])
@@ -110,33 +142,21 @@ export default function Home({ data, errors }: { data: any, errors: any }) {
 			<div id='data-input' className='flex flex-col justify-center gap-4'>
 
 				<Accordion onChange={(event: React.SyntheticEvent, expanded: boolean) => displayErrorExists ? setEExists(false) : undefined}>
-					<AccordionSummary expandIcon={<ExpandMore />} >
-						<Badge
-							color="warning"
-							anchorOrigin={{
-								vertical: 'top',
-								horizontal: 'left',
-							}}
-							variant="dot"
-							invisible={!displayErrorExists}
-						>
+					<Badge
+						color="warning"
+						anchorOrigin={{
+							vertical: 'top',
+							horizontal: 'left',
+						}}
+						variant="dot"
+						invisible={!displayErrorExists}
+					>
+						<AccordionSummary expandIcon={<ExpandMore />} >
 							Errors
-						</Badge>
-					</AccordionSummary>
+						</AccordionSummary>
+					</Badge>
 					<AccordionDetails>
-						{/* {Object.keys(errors).map((client, idx) => {
-							return (
-								<div key={idx}>
-									{client}
-									<ul className='list-disc ml-8'>
-										{(Object.keys(errors?.[client])?.map((err, sub_idx) => {
-											return <li key={`${idx}_${sub_idx}`}>{errors[client][err]}</li>
-										}))}
-
-									</ul>
-								</div>
-							)
-						})} */}
+						{err}
 					</AccordionDetails>
 				</Accordion>
 
@@ -152,7 +172,7 @@ export default function Home({ data, errors }: { data: any, errors: any }) {
 									</Fab>
 									{label}
 								</div>
-								<SimpleBarChartWithoutSSR data={data?.[documentSelect]?.[displayType]?.[label ?? '']} maxValue={yRelative ? undefined : maxValue} />
+								<SimpleBarChartWithoutSSR data={data?.[documentSelect]['data']?.[displayType]?.[label ?? ''] ?? []} maxValue={yRelative ? undefined : maxValue} />
 							</div>
 						)
 					})}
@@ -223,7 +243,7 @@ export default function Home({ data, errors }: { data: any, errors: any }) {
 										disablePortal
 										freeSolo
 										id={'graph_input'}
-										options={Object.keys(data?.[documentSelect]?.[displayType] ?? [])}
+										options={Object.keys(data?.[documentSelect]['data']?.[displayType] ?? [])}
 										onChange={handleSearchChange}
 										className={'w-1/2'}
 										renderInput={(params) => <TextField {...params} label={'Graph Name'} />}

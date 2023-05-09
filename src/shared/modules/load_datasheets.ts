@@ -1,28 +1,40 @@
 import fs from 'fs'
 import path from 'path'
 import { processXLS, dataFormatter } from './parse_xls'
+import { DSheets, FormattedData } from '../types/types'
 
-export const load_data_sheets = () => {
+export const load_data_sheets = (): DSheets => {
 	try {
+
+		// get files uploaded to filesystem
 		const files = fs.readdirSync(path.join(process.cwd(), process.env.DATA_ORIGIN ?? ''))
 
-		const cfiles: { [index: string]: any } = {}
+		const ds: DSheets = {}
+
+		// get the graph data for each file in filesystem
 		for (let file of files) {
 			const { data, errors, message, status } = processXLS(`${process.env.DATA_ORIGIN}/${file}`)
-			const { individual_clients, individual_employees, employees, clients } = data
 
-			cfiles[file] = {
-				individual_clients: dataFormatter(individual_clients),
-				employees: dataFormatter(employees),
-				individual_employees: dataFormatter(individual_employees),
-				clients: dataFormatter(clients)
+			ds[file] = { errors }
+
+			if (data === undefined) continue
+
+			let d: { [graph_type: string]: FormattedData } = {}
+
+			for (let graph_type in data) {
+				d[graph_type] = dataFormatter(data[graph_type])
 			}
+
+			ds[file]['data'] = d
 		}
 
-		return cfiles
+		return ds
 
-
-	} catch (e) {
-		console.log(e)
+	} catch (e: any) {
+		return {
+			'error retrieving uploaded files': {
+				errors: e
+			}
+		}
 	}
 }
