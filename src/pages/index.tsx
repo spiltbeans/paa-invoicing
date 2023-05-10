@@ -25,15 +25,26 @@ import { Add, ExpandMore, Close, ArrowBack, ArrowForward } from '@mui/icons-mate
 const SimpleBarChartWithoutSSR = dynamic(import('@/shared/components/Chart'), { ssr: false })
 import { DataItem, DSheets } from '@/shared/types/types'
 import { load_data_sheets } from '@/shared/modules/load_datasheets'
+import { getCookie } from 'cookies-next'
 
-export async function getServerSideProps() {
-
-	return {
-		props: {
-			data: load_data_sheets(),
+export async function getServerSideProps({ req, res }: { req: any, res: any }) {
+	const authorized = getCookie('authorized', { req, res })
+	if (authorized) {
+		return {
+			props: {
+				data: load_data_sheets(),
+			}
+		}
+	} else {
+		return {
+			redirect: {
+				permanent: false,
+				destination: '/login',
+			},
 		}
 	}
 }
+
 
 export default function Home({ data }: { data: DSheets }) {
 	const [documentSelect, setDocumentSelect] = useState(Object.keys(data)[0] ?? '')

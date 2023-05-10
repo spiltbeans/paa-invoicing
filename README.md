@@ -3,3 +3,4 @@
 - https://docs.sheetjs.com/docs/getting-started/installation/frameworks
 - https://git.sheetjs.com/sheetjs/sheetjs
 - https://www.npmjs.com/package/filesac
+- [insanely basic login](https://blog.logrocket.com/guide-cookies-next-js/)
