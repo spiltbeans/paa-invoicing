@@ -71,41 +71,38 @@ type DStruc = {
 const fileSorting = ((a: DataItem, b: DataItem) => {
 	// date collection algorithm
 	// get the label
-	// begin loop of substring x 3
-	// check if substring exceeds beginning of string
-	// if yes, end substring
-
 	// collect respective dates for comparison
 
-	const a_label = (a.label).split('.')[0]
+	const a_dates = ((a.label).split('.')[0]).split('-')
+
 	const a_date: DStruc = {
 		'year': '00',
 		'month': '00',
 		'date': '00'
 	}
 
-	let i = 0
+	let i = a_dates.length - 1
 	for (let d in a_date) {
+		if (i < 0) break
 
-		let sub_by = 2 * i
-		if ((a_label.length - sub_by) < 0) break
-
-		a_date[d] = a_label.substring((a_label.length - sub_by), (a_label.length - sub_by + 2))
+		a_date[d] = a_dates[i]
+		i = i - 1
 	}
 
-	const b_label = (b.label).split('.')[0]
+	const b_dates = ((b.label).split('.')[0]).split('-')
+
 	const b_date: DStruc = {
 		'year': '00',
 		'month': '00',
 		'date': '00'
 	}
-	i = 0
+
+	i = b_dates.length - 1
 	for (let d in b_date) {
+		if (i < 0) break
 
-		let sub_by = 2 * i
-		if ((b_label.length - sub_by) < 0) break
-
-		b_date[d] = b_label.substring((b_label.length - sub_by), (b_label.length - sub_by + 2))
+		b_date[d] = b_dates[i]
+		i = i - 1
 	}
 
 	// doing date comparison
@@ -119,11 +116,13 @@ const fileSorting = ((a: DataItem, b: DataItem) => {
 		// if b is NaN then put it behind a (leftmost)
 		if (isNaN(parseInt(b_date[d]))) return -1
 
-
 		// if both are numbers, compare which is greater
+
+		// we don't return 0 because this would indicate we need to check the next parameter.
+		// we only return 0 when all parameters have been checked. If there's been no return it indicates there's no difference
 		if ((parseInt(b_date[d]) === parseInt(a_date[d]))) continue
 
-		return (parseInt(b_date[d]) - parseInt(a_date[d]))
+		return (parseInt(a_date[d]) - parseInt(b_date[d]))
 
 	}
 	return 0

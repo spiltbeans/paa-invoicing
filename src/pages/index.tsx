@@ -63,8 +63,8 @@ export default function Home({ data }: { data: DSheets }) {
 
 	}, [data, documentSelect])
 
-	useEffect(()=>{
-		if(documentSelect === 'error_retrieving_uploaded_files'){
+	useEffect(() => {
+		if (documentSelect === 'error_retrieving_uploaded_files') {
 			setWarning(data[documentSelect]?.errors)
 		}
 	}, [documentSelect, data])
@@ -168,12 +168,12 @@ export default function Home({ data }: { data: DSheets }) {
 	const SPECIAL_DISPLAY = ['client_trends', 'employee_trends']
 
 	const handleDocumentChange = (event: SelectChangeEvent) => {
-		if(event.target.value === 'trends' && !SPECIAL_DISPLAY.includes(displayType)) {
+		if (event.target.value === 'trends' && !SPECIAL_DISPLAY.includes(displayType)) {
 			setAutoSort(false)
 			setDisplayType('client_trends')
 		}
 
-		if(event.target.value !== 'trends' && SPECIAL_DISPLAY.includes(displayType)){
+		if (event.target.value !== 'trends' && SPECIAL_DISPLAY.includes(displayType)) {
 			setAutoSort(true)
 			setDisplayType('clients')
 		}
@@ -265,6 +265,15 @@ export default function Home({ data }: { data: DSheets }) {
 								<Tooltip title="replace data by uploading a sheet with the same name">
 									<input type='file' onChange={handleFileUpload}></input>
 								</Tooltip>
+								<div className='flex flex-col w-96'>
+									<em>
+										{'Note on "trend" feature: files are sorted by date in format of [text]-[DD]-[MM]-[YY].xlsx.'}
+									</em>
+									<em>
+										{'The system will attempt to sort even if some date formatting is missing (i.e., [text]-[MM]-[YY].xlsx), but if the system cannot recognize a valid date formatting, the bar will be positioned left-wise.'}
+									</em>
+								</div>
+
 							</section>
 							<section className='flex flex-col gap-4'>
 								<h2 className='text-base font-bold'>
