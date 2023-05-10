@@ -15,8 +15,8 @@ const CustomizedAxisTick = (props: any) => {
 	)
 }
 
-export default function Chart({ data, maxValue }: { data: Array<DataItem>, maxValue?: number }) {
-	const sortedData = data.sort((a, b) => a.value - b.value)
+export default function Chart({ data, maxValue, autoSort=true }: { data: Array<DataItem>, maxValue?: number, autoSort ?: boolean }) {
+	const sortedData = autoSort ? data.sort((a, b) => a.value - b.value)  : data
 	return (
 		<ResponsiveContainer width={'100%'} height={300}>
 			<BarChart
