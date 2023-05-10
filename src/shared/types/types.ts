@@ -48,3 +48,14 @@ export interface DSheets {
 		errors: ErrSheets | any,
 	}
 }
+
+export interface TrendEmployees {
+	[sheet_name: string]: {
+		employees: EmployeeHours
+	}
+}
+export interface TrendClients {
+	[sheet_name: string]: {
+		clients: ClientHours
+	}
+}

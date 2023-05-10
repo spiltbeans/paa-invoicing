@@ -52,6 +52,7 @@ export default function Home({ data }: { data: DSheets }) {
 
 	const router = useRouter()
 	const [warning, setWarning] = useState('')
+	const [autoSort, setAutoSort] = useState(true)
 
 	useEffect(() => {
 		const e = data[documentSelect]?.errors
@@ -61,6 +62,12 @@ export default function Home({ data }: { data: DSheets }) {
 		}
 
 	}, [data, documentSelect])
+
+	useEffect(()=>{
+		if(documentSelect === 'error_retrieving_uploaded_files'){
+			setWarning(data[documentSelect]?.errors)
+		}
+	}, [documentSelect, data])
 
 	const handleSearchChange = (event: React.SyntheticEvent<Element, Event>, value: string | null) => {
 		setCurrSearch(value ?? '')
@@ -86,7 +93,7 @@ export default function Home({ data }: { data: DSheets }) {
 
 		if (d === undefined) return 0
 
-		const graph_labels: Array<string> = (Object.keys(d?.[displayType]))
+		const graph_labels: Array<string> = (Object.keys(d?.[displayType] ?? {}))
 		const graph_values: Array<number> = graph_labels.map(label => (
 			(d?.[displayType]?.[label]).map((element: DataItem) => element.value)
 		)).flat()
@@ -126,7 +133,7 @@ export default function Home({ data }: { data: DSheets }) {
 
 		if (e === undefined) return <></>
 
-		return Object.keys(e ?? []).map((source, idx) => {
+		return Object.keys(e ?? {}).map((source, idx) => {
 			return (
 				<div key={idx}>
 					{source}
@@ -154,7 +161,23 @@ export default function Home({ data }: { data: DSheets }) {
 		}
 	}
 
+	// rules: 
+	// - if document gets changed to client trend and display not client trend, change
+	// - if document gets changed to !client trend and display client trend, change
+	// don't need to do any enforcement logic in perspective change because the buttons are disabled
+	const SPECIAL_DISPLAY = ['client_trends', 'employee_trends']
+
 	const handleDocumentChange = (event: SelectChangeEvent) => {
+		if(event.target.value === 'trends' && !SPECIAL_DISPLAY.includes(displayType)) {
+			setAutoSort(false)
+			setDisplayType('client_trends')
+		}
+
+		if(event.target.value !== 'trends' && SPECIAL_DISPLAY.includes(displayType)){
+			setAutoSort(true)
+			setDisplayType('clients')
+		}
+
 		setDocumentSelect(event.target.value as string)
 		setGraphs([])
 		setCurrSearch('')
@@ -173,7 +196,6 @@ export default function Home({ data }: { data: DSheets }) {
 		>
 			<h1 className='text-2xl font-bold'>Work Description Report</h1>
 			<div id='data-input' className='flex flex-col justify-center gap-4'>
-
 				<Accordion onChange={(event: React.SyntheticEvent, expanded: boolean) => displayErrorExists ? setEExists(false) : undefined}>
 					<Badge
 						color="warning"
@@ -205,7 +227,7 @@ export default function Home({ data }: { data: DSheets }) {
 									</Fab>
 									{label}
 								</div>
-								<SimpleBarChartWithoutSSR data={data?.[documentSelect]?.['data']?.[displayType]?.[label ?? ''] ?? []} maxValue={yRelative ? undefined : maxValue} />
+								<SimpleBarChartWithoutSSR autoSort={autoSort} data={data?.[documentSelect]?.['data']?.[displayType]?.[label ?? ''] ?? []} maxValue={yRelative ? undefined : maxValue} />
 							</div>
 						)
 					})}
@@ -257,10 +279,14 @@ export default function Home({ data }: { data: DSheets }) {
 
 
 									<ToggleButtonGroup value={displayType} exclusive onChange={handlePerspectiveChange}>
-										<ToggleButton className='text-xs' value='clients'>Clients</ToggleButton>
-										<ToggleButton className='text-xs' value='employees'>Employees</ToggleButton>
-										<ToggleButton className='text-xs' value='individual_employees'>Individual Employees</ToggleButton>
-										<ToggleButton className='text-xs' value='individual_clients'>Individual Clients</ToggleButton>
+										<ToggleButton className='text-xs' value='clients' disabled={!(data?.[documentSelect]?.['data'] ?? {}).hasOwnProperty('clients')}>Clients</ToggleButton>
+										<ToggleButton className='text-xs' value='employees' disabled={!(data?.[documentSelect]?.['data'] ?? {}).hasOwnProperty('employees')}>Employees</ToggleButton>
+										<ToggleButton className='text-xs' value='individual_employees' disabled={!(data?.[documentSelect]?.['data'] ?? {}).hasOwnProperty('individual_employees')}>Individual Employees</ToggleButton>
+										<ToggleButton className='text-xs' value='individual_clients' disabled={!(data?.[documentSelect]?.['data'] ?? {}).hasOwnProperty('individual_clients')}>Individual Clients</ToggleButton>
+									</ToggleButtonGroup>
+									<ToggleButtonGroup value={displayType} exclusive onChange={handlePerspectiveChange}>
+										<ToggleButton className='text-xs' value='client_trends' disabled={!(data?.[documentSelect]?.['data'] ?? {}).hasOwnProperty('client_trends')}>Client Trends</ToggleButton>
+										<ToggleButton className='text-xs' value='employee_trends' disabled={!(data?.[documentSelect]?.['data'] ?? {}).hasOwnProperty('employee_trends')}>Employee Trends</ToggleButton>
 									</ToggleButtonGroup>
 								</div>
 
@@ -292,7 +318,7 @@ export default function Home({ data }: { data: DSheets }) {
 
 				</div>
 			</div>
-			<Snackbar open={!!warning} autoHideDuration={6000} onClose={() => setWarning('')}>
+			<Snackbar open={!!warning} autoHideDuration={12000} onClose={() => setWarning('')}>
 				<Alert onClose={() => setWarning('')} severity={'error'} sx={{ width: '100%' }}>
 					{warning}
 				</Alert>
