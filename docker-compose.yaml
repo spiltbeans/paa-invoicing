@@ -1,0 +1,14 @@
+version: '3'
+services:
+  server:
+    container_name: paa-invoicing
+    restart: always
+    build: .
+    volumes:
+      - server_data:/usr/src/app/data
+    ports:
+      - 80:3000
+    env_file:
+      - .env.local
+volumes:
+  server_data:
