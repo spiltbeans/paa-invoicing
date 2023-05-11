@@ -10,6 +10,7 @@
 ## Table of Contents
 - [Summary](#summary)
 - [Deployment](#deployment)
+- [Project Challanges](#project-challanges)
 - [References](#references)
 
 ## SUMMARY
