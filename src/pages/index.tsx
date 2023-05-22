@@ -23,30 +23,20 @@ import {
 import { SelectChangeEvent } from '@mui/material'
 import { Add, ExpandMore, Close, ArrowBack, ArrowForward } from '@mui/icons-material'
 const SimpleBarChartWithoutSSR = dynamic(import('@/shared/components/Chart'), { ssr: false })
-import { DataItem, DSheets } from '@/shared/types/types'
-import { load_data_sheets } from '@/shared/modules/load_datasheets'
-import { getCookie } from 'cookies-next'
+import { load_data_sheets } from '@/shared/modules/chart_utils'
+import { useSession, signIn } from 'next-auth/react'
 
 export async function getServerSideProps({ req, res }: { req: any, res: any }) {
-	const authorized = getCookie('authorized', { req, res })
-	if (authorized) {
-		return {
-			props: {
-				data: load_data_sheets(),
-			}
-		}
-	} else {
-		return {
-			redirect: {
-				permanent: false,
-				destination: '/login',
-			},
+	return {
+		props: {
+			data: load_data_sheets(),
 		}
 	}
 }
 
-
 export default function Home({ data }: { data: DSheets }) {
+	const { data: session } = useSession()
+
 	const [documentSelect, setDocumentSelect] = useState(Object.keys(data)[0] ?? '')
 
 	// search state
@@ -193,6 +183,14 @@ export default function Home({ data }: { data: DSheets }) {
 		setGraphs([])
 		setCurrSearch('')
 	}
+
+	if (!session) return (
+		<>
+			Not signed in <br />
+			<button onClick={() => signIn()}>Sign in</button>
+		</>
+	)
+
 	return (
 		<Box
 			sx={{

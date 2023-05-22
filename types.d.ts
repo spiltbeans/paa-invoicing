@@ -1,46 +1,46 @@
 // types for graph
-export type DataItem = {
+type DataItem = {
 	label: string,
 	value: number
 }
-export interface FormattedData {
+interface FormattedData {
 	[graph_label: string]: Array<DataItem>
 }
 
-export interface ErrSheets {
+interface ErrSheets {
 	[error_source: string]: any
 }
 
-export interface EmployeeHours {
+interface EmployeeHours {
 	[employee_name: string]: number
 }
 
-export interface ConsolidatedHours {
+interface ConsolidatedHours {
 	[client_name: string]: EmployeeHours
 }
 
 
-export interface ClientHours {
+interface ClientHours {
 	[client_name: string]: number
 }
 
-export interface CCHours {
+interface CCHours {
 	[employee_name: string]: ClientHours
 }
-export interface SPayload {
+interface SPayload {
 	[graph_type: string]: ConsolidatedHours | CCHours | {
 		[sub_type: string]: EmployeeHours | ClientHours
 	}
 }
 
-export interface PXLSResponse {
+interface PXLSResponse {
 	status: boolean,
 	message: string,
 	data?: SPayload,
 	errors: ErrSheets | Error | unknown
 }
 
-export interface DSheets {
+interface DSheets {
 	[sheet_name: string]: {
 		data?: {
 			[graph_type: string]: FormattedData
@@ -49,12 +49,12 @@ export interface DSheets {
 	}
 }
 
-export interface TrendEmployees {
+interface TrendEmployees {
 	[sheet_name: string]: {
 		employees: EmployeeHours
 	}
 }
-export interface TrendClients {
+interface TrendClients {
 	[sheet_name: string]: {
 		clients: ClientHours
 	}

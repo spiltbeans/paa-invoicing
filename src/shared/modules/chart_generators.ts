@@ -1,7 +1,6 @@
 
-import { CCHours, ClientHours, ConsolidatedHours, DataItem, EmployeeHours, FormattedData, TrendClients, TrendEmployees } from '../types/types'
 import { whitelist } from '../whitelist'
-import { dataFormatter } from './parse_xls'
+import { dataFormatter } from './xls_parser'
 
 //const client_hour_employee = () => {}	// default from ConsolidatedHours
 

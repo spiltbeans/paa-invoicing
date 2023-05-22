@@ -1,8 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { processXLS, dataFormatter } from './parse_xls'
-import { client_hour_trend, employee_hour_trend } from './generate_chart_data'
-import { ClientHours, DSheets, EmployeeHours, FormattedData, TrendEmployees, TrendClients } from '../types/types'
+import { processXLS, dataFormatter } from './xls_parser'
+import { client_hour_trend, employee_hour_trend } from './chart_generators'
 
 export const load_data_sheets = (): DSheets => {
 	try {

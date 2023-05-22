@@ -1,15 +1,8 @@
 import xlsx from 'xlsx'
 import path from 'path'
 import { whitelist, known_errors } from '@/shared/whitelist'
-import type {
-	PXLSResponse,
-	FormattedData,
-	ErrSheets,
-	EmployeeHours,
-	ConsolidatedHours,
-} from '@/shared/types/types'
 import type { WorkBook, WorkSheet } from 'xlsx'
-import { employee_hour_client, hour_employees, hour_client } from './generate_chart_data'
+import { employee_hour_client, hour_employees, hour_client } from './chart_generators'
 
 enum AnchorProtocol {
 	SUCCESS,
