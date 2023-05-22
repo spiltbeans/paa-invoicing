@@ -3,25 +3,32 @@ import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import axios from 'axios'
 import dynamic from 'next/dynamic'
-import {
-	Box,
-	ToggleButtonGroup,
-	ToggleButton,
-	Tooltip,
-	AccordionSummary,
-	Accordion,
-	AccordionDetails,
-	Badge,
-	TextField,
-	Autocomplete,
-	Fab,
-	Select,
-	MenuItem,
-	Snackbar,
-	Alert
-} from '@mui/material'
-import { SelectChangeEvent } from '@mui/material'
-import { Add, ExpandMore, Close, ArrowBack, ArrowForward } from '@mui/icons-material'
+
+
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import Alert from '@mui/material/Alert'
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import TextField from '@mui/material/TextField'
+import Tooltip from '@mui/material/Tooltip'
+import Badge from '@mui/material/Badge'
+import Autocomplete from '@mui/material/Autocomplete'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import Snackbar from '@mui/material/Snackbar'
+import Fab from '@mui/material/Fab'
+
+import AddIcon from '@mui/icons-material/Add'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import CloseIcon from '@mui/icons-material/Close'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+
+import type { SelectChangeEvent } from '@mui/material/Select'
 const SimpleBarChartWithoutSSR = dynamic(import('@/shared/components/Chart'), { ssr: false })
 import { load_data_sheets } from '@/shared/modules/chart_utils'
 import { useSession, signIn } from 'next-auth/react'
@@ -185,10 +192,9 @@ export default function Home({ data }: { data: DSheets }) {
 	}
 
 	if (!session) return (
-		<>
-			Not signed in <br />
-			<button onClick={() => signIn()}>Sign in</button>
-		</>
+		<Container className={'flex justify-center p-6'}>
+			<button className={'py-5 px-10 mt-10 rounded border border-black bg-gray-100 hover:bg-gray-300'} onClick={() => signIn()}>Sign in</button>
+		</Container>
 	)
 
 	return (
@@ -215,7 +221,7 @@ export default function Home({ data }: { data: DSheets }) {
 						variant="dot"
 						invisible={!displayErrorExists}
 					>
-						<AccordionSummary expandIcon={<ExpandMore />} >
+						<AccordionSummary expandIcon={<ExpandMoreIcon />} >
 							Errors
 						</AccordionSummary>
 					</Badge>
@@ -232,7 +238,7 @@ export default function Home({ data }: { data: DSheets }) {
 							<div id='data-chart' className='w-full' key={idx}>
 								<div className='flex items-center gap-5 ml-8 my-4'>
 									<Fab size='small' onClick={() => handleRemoveGraph(label ?? '')}>
-										<Close />
+										<CloseIcon />
 									</Fab>
 									{label}
 								</div>
@@ -243,10 +249,10 @@ export default function Home({ data }: { data: DSheets }) {
 				</div>
 
 				<div id='data-controller' className='w-fit border py-11'>
-					{!controlsOpen && <ArrowBack className='hover:cursor-pointer' onClick={() => { setControlsOpen(true) }} />}
+					{!controlsOpen && <ArrowBackIcon className='hover:cursor-pointer' onClick={() => { setControlsOpen(true) }} />}
 					{controlsOpen &&
 						<div className='flex flex-col gap-4 px-5'>
-							<ArrowForward className='hover:cursor-pointer' onClick={() => { setControlsOpen(false) }} />
+							<ArrowForwardIcon className='hover:cursor-pointer' onClick={() => { setControlsOpen(false) }} />
 							<section className='flex flex-col gap-4'>
 								<h2 className='text-base font-bold'>
 									Select from already existing data
@@ -326,7 +332,7 @@ export default function Home({ data }: { data: DSheets }) {
 										renderInput={(params) => <TextField {...params} label={'Graph Name'} />}
 									/>
 									<Fab size='small' className='bg-gray-400 hover:bg-gray-300' onClick={handleAddGraph}>
-										<Add />
+										<AddIcon />
 									</Fab>
 								</div>
 							</section>

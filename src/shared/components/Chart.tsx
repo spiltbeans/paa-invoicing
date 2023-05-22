@@ -1,6 +1,5 @@
 import React from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Label, Text, ResponsiveContainer } from 'recharts'
-import type { DataItem } from '../types/types'
 
 // https://github.com/recharts/recharts/issues/397
 
