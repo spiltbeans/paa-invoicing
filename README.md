@@ -17,5 +17,34 @@
 ## SUMMARY
 - Technology: NextJS, MaterialUI, Tailwind, Formidable, Recharts, xlsx/SheetsJS
 
-## DEPLOYMENT
-TODO
+## DEPLOYMENT (Docker/Ubuntu method)
+TODO: automate more of the deployment in the Dockerfile
+
+1. Clone git repo
+```
+https://github.com/spiltbeans/paa-invoicing
+```
+
+2. Add enviroment variables
+```
+touch .env && nano .env
+```
+The following environment variables are required:
+```
+# config for server
+SERVER_MODE=<prod | test>
+BYPASS_AUTH=<Bool>
+TEST_ORIGIN=<TESTING_URL>
+PROD_ORIGIN=<PRODUCTION_URL>
+DATA_ORIGIN=<RELATIVE PATH_DATA_PATH>
+BASIC_AUTH_USERNAME=<AUTH_USERNAME>
+BASIC_AUTH_PASSWORD=<AUTH_PASSWORD
+```
+3. Build the Next.js project
+```
+npm run build
+```
+4. Build and run the Docker container
+```
+docker-compose build && docker-compose up -d
+```
