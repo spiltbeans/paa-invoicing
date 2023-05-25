@@ -1,5 +1,5 @@
 
-import { whitelist } from '../whitelist'
+import { whitelist } from '@/config/whitelist'
 import { dataFormatter } from './xls_parser'
 
 //const client_hour_employee = () => {}	// default from ConsolidatedHours

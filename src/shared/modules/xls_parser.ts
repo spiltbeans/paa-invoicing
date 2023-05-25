@@ -1,6 +1,6 @@
 import xlsx from 'xlsx'
 import path from 'path'
-import { whitelist, known_errors } from '@/shared/whitelist'
+import { whitelist, known_errors } from '@/config/whitelist'
 import type { WorkBook, WorkSheet } from 'xlsx'
 import { employee_hour_client, hour_employees, hour_client } from './chart_generators'
 
