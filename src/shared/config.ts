@@ -1,1 +1,0 @@
-export const ORIGIN = process.env.SERVER_MODE === 'prod' ? process.env.PROD_ORIGIN : process.env.TEST_ORIGIN
