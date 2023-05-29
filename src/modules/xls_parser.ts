@@ -4,18 +4,6 @@ import { whitelist, known_errors } from '@/config/whitelist'
 import type { WorkBook, WorkSheet } from 'xlsx'
 import { employee_hour_client, hour_employees, hour_client } from './chart_generators'
 
-enum AnchorProtocol {
-	SUCCESS,
-	FAIL,
-	WARN
-}
-
-type AnchorResponse = {
-	status: AnchorProtocol,
-	data?: string,
-	message?: string
-}
-
 const findAnchorCell = (sheet: WorkSheet, anchor: Array<string>): AnchorResponse => {
 	//check if multiple anchors exist
 	const anchors = []
@@ -27,11 +15,11 @@ const findAnchorCell = (sheet: WorkSheet, anchor: Array<string>): AnchorResponse
 	}
 
 	if (anchors.length < 1) {
-		return { status: AnchorProtocol.FAIL, message: `cannot find anchor cell for anchor: ${anchor.toString()}` }
+		return { status: 'FAIL', message: `cannot find anchor cell for anchor: ${anchor.toString()}` }
 	} else if (anchors.length > 1) {
-		return { status: AnchorProtocol.WARN, message: `multiple anchors found. using first anchor found. some entries may not be accounted for: ${anchors.toString()}`, data: anchors[0] }
+		return { status: 'WARN', message: `multiple anchors found. using first anchor found. some entries may not be accounted for: ${anchors.toString()}`, data: anchors[0] }
 	} else {
-		return { status: AnchorProtocol.SUCCESS, data: anchors[0] }
+		return { status: 'OK', data: anchors[0] }
 	}
 
 }
@@ -82,7 +70,7 @@ const findHours = (sheet: WorkSheet, anchor_cell: string | undefined): EmployeeH
 }
 
 
-export const dataFormatter = (data: ConsolidatedHours): FormattedData => {
+export const dataFormatter = (data: AllEmployeeHours): FormattedData => {
 	const fd: FormattedData = {}
 
 	for (let graph_label in data) {
@@ -92,18 +80,13 @@ export const dataFormatter = (data: ConsolidatedHours): FormattedData => {
 	return fd
 }
 
-type SanitizedDataResponse = {
-	data: EmployeeHours,
-	errors: ErrSheets
-}
-
 const sanitizeData = (data: EmployeeHours): SanitizedDataResponse => {
 	// at same time because working with a whitelist:
 	// (1) do some sanitization to remove redundancy - done in findHours
 	// (2) to remove Team Member and Total cells
 	// (3) do some checking to see if all employees have an alias
 
-	const error_tracker: ErrSheets = {}
+	const error_tracker: SheetErrors = {}
 
 	const sanitized_copy: EmployeeHours = {}
 
@@ -117,7 +100,7 @@ const sanitizeData = (data: EmployeeHours): SanitizedDataResponse => {
 		for (let wlm in whitelist) {
 
 			// standardizing strings
-			let w = (whitelist[wlm]).map(alias => alias.toLowerCase())
+			let w = (whitelist[wlm]).map(alias => alias.replaceAll(' ', '').toLowerCase())
 			if (w.includes(m)) {
 				inWhitelist = true
 
@@ -135,26 +118,27 @@ const sanitizeData = (data: EmployeeHours): SanitizedDataResponse => {
 }
 
 
-export const processXLS = (relative_path: string): PXLSResponse => {
+export const processXLS = (relative_path: string): ParseXLSXResponse => {
 
 	try {
-		const new_path = path.join(process.cwd(), relative_path)
-		const workbook: WorkBook = xlsx.readFile(new_path)
+		const workbook: WorkBook = xlsx.readFile(path.join(process.cwd(), relative_path))
 		const sheets: { [sheet: string]: WorkSheet } = workbook.Sheets
-		const error_sheets: ErrSheets = {}
-		const consolidated_hours: ConsolidatedHours = {}
+		const workbook_errors: { [sheet: string]: SheetErrors } = {}
+		const all_emp_hours: AllEmployeeHours = {}
 		const ANCHOR_VALUES = ['team member', 'team members']
 
 		for (let sheet in sheets) {
+			const sheet_errors: SheetErrors = {}
+
 			if (sheet.toLowerCase() === 'navigation') continue
 
 			let { data: anchor_cell, message, status } = findAnchorCell(sheets[sheet], ANCHOR_VALUES)
 
 			// error handling, maybe anchor has typo or deleted
-			if (status === AnchorProtocol.WARN) {
-				error_sheets[sheet] = { 'anchor': `${sheet} ${message}` }
-			} else if (status === AnchorProtocol.FAIL) {
-				error_sheets[sheet] = { 'anchor': `${sheet} ${message}` }
+			if (status === 'WARN') {
+				sheet_errors['anchor'] = `${sheet} ${message}`
+			} else if (status === 'FAIL') {
+				sheet_errors['anchor'] = `${sheet} ${message}`
 				continue
 			}
 
@@ -164,27 +148,45 @@ export const processXLS = (relative_path: string): PXLSResponse => {
 			// remove redundancy, remove Team Member and Total cells,
 			// all employees have an alias
 			// do some checking to see if all employees have a number beside them
-			let { data, errors } = sanitizeData(sheet_contributions)
+			const { data: sanitized_data, errors: sanitize_errors } = sanitizeData(sheet_contributions)
 
-			if (Object.keys(errors).length > 0) error_sheets[sheet] = errors
+			workbook_errors[sheet] = { ...sheet_errors, ...sanitize_errors }
 
-			consolidated_hours[sheet] = data
+			all_emp_hours[sheet] = { ...sanitized_data }
 		}
 
-		// utilize data generators
+		if (Object.keys(workbook_errors).length > 0) {
+			return {
+				status: 'WARN',
+				message: 'succeeded with some errors',
+				data: {
+					'individual_clients': all_emp_hours,
+					'individual_employees': employee_hour_client(all_emp_hours),
+					'employees': { 'employees': hour_employees(all_emp_hours) },
+					'clients': { 'clients': hour_client(all_emp_hours) }
+				},
+				errors: workbook_errors
+			}
+		} else {
+			return {
+				status: 'OK',
+				message: 'success',
+				data: {
+					'individual_clients': all_emp_hours,
+					'individual_employees': employee_hour_client(all_emp_hours),
+					'employees': { 'employees': hour_employees(all_emp_hours) },
+					'clients': { 'clients': hour_client(all_emp_hours) }
+				}
+			}
+
+		}
+
+	} catch (e: unknown) {
+		const knownErr = e as Error
 		return {
-			status: true,
-			message: 'success',
-			data: {
-				'individual_clients': consolidated_hours,
-				'individual_employees': employee_hour_client(consolidated_hours),
-				'employees': { 'employees': hour_employees(consolidated_hours) },
-				'clients': { 'clients': hour_client(consolidated_hours) }
-			},
-			errors: error_sheets
+			status: 'FAIL',
+			message: `unsuccessful:\n${e}`,
+			errors: (knownErr).toString()
 		}
-	} catch (e: Error | unknown) {
-		return { status: false, message: `unsuccessful ${e}`, errors: (e) }
 	}
-
 }

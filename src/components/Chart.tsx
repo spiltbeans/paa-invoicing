@@ -20,7 +20,7 @@ export default function Chart(
 		maxValue,
 		autoSort = true
 	}: {
-		data: Array<DataItem>,
+		data: Array<DataElement>,
 		maxValue?: number,
 		autoSort?: boolean
 	}

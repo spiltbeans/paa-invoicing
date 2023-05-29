@@ -2,9 +2,7 @@
 import { whitelist } from '../config/whitelist'
 import { dataFormatter } from './xls_parser'
 
-//const client_hour_employee = () => {}	// default from ConsolidatedHours
-
-export const employee_hour_client = (data: ConsolidatedHours): CCHours => {
+export const employee_hour_client = (data: AllEmployeeHours): CCHours => {
 	const cch: CCHours = {}
 	for (let client in data) {
 		for (let employee in data[client]) {
@@ -22,7 +20,7 @@ export const employee_hour_client = (data: ConsolidatedHours): CCHours => {
 	return cch
 }
 
-export const hour_employees = (data: ConsolidatedHours): EmployeeHours => {
+export const hour_employees = (data: AllEmployeeHours): EmployeeHours => {
 	const eh: EmployeeHours = {}
 
 	for (let client in data) {
@@ -43,7 +41,7 @@ export const hour_employees = (data: ConsolidatedHours): EmployeeHours => {
 	return eh
 }
 
-export const hour_client = (data: ConsolidatedHours): ClientHours => {
+export const hour_client = (data: AllEmployeeHours): ClientHours => {
 	const ch: ClientHours = {}
 
 	for (let client in data) {
@@ -67,7 +65,7 @@ export const hour_client = (data: ConsolidatedHours): ClientHours => {
 type DStruc = {
 	[d_type: string]: string
 }
-const fileSorting = ((a: DataItem, b: DataItem) => {
+const fileSorting = ((a: DataElement, b: DataElement) => {
 	// date collection algorithm
 	// get the label
 	// collect respective dates for comparison
@@ -128,9 +126,9 @@ const fileSorting = ((a: DataItem, b: DataItem) => {
 })
 
 export const client_hour_trend = (trend: TrendClients): FormattedData => {
-	// note: this utilizes ConsolidatedHours structure, but with the following changed:
+	// note: this utilizes AllEmployeeHours structure, but with the following changed:
 	// - employee_name -> bill_period/file_name/sheet_name
-	const ch: ConsolidatedHours = {}
+	const ch: AllEmployeeHours = {}
 
 	// assumptions: 
 	// (1) there is only 1 client per document
@@ -159,10 +157,10 @@ export const client_hour_trend = (trend: TrendClients): FormattedData => {
 }
 
 export const employee_hour_trend = (trend: TrendEmployees): FormattedData => {
-	// note: this utilizes ConsolidatedHours structure, but with the following changed:
+	// note: this utilizes AllEmployeeHours structure, but with the following changed:
 	// - employee_name -> bill_period/file_name/sheet_name
 	// - client_name => employee_name
-	const ch: ConsolidatedHours = {}
+	const ch: AllEmployeeHours = {}
 
 	// assumptions: 
 	// (1) there is only 1 employee per document
