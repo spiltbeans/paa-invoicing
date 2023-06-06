@@ -1,5 +1,5 @@
 import React from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Label, Text, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 // https://github.com/recharts/recharts/issues/397
 
@@ -14,8 +14,18 @@ const CustomizedAxisTick = (props: any) => {
 	)
 }
 
-export default function Chart({ data, maxValue, autoSort=true }: { data: Array<DataItem>, maxValue?: number, autoSort ?: boolean }) {
-	const sortedData = autoSort ? data.sort((a, b) => a.value - b.value)  : data
+export default function Chart(
+	{
+		data,
+		maxValue,
+		autoSort = true
+	}: {
+		data: Array<DataElement>,
+		maxValue?: number,
+		autoSort?: boolean
+	}
+) {
+	const sortedData = autoSort ? data.sort((a, b) => a.value - b.value) : data
 	return (
 		<ResponsiveContainer width={'100%'} height={300}>
 			<BarChart
