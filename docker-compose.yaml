@@ -12,3 +12,5 @@ services:
       - .env.local
 volumes:
   server_data:
+    external:
+      name: paa-invoicing-prod_server_data

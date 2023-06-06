@@ -1,6 +1,6 @@
 # PAA INVOICING
 
-> The main goal of this project to visualize invoicing data from an xlsx file for auditing purposes.
+> The main goal of this project is to visualize invoicing data from an xlsx file for auditing purposes.
 
 > There were two functional achievements
 > 1. Parse xlsx files and create data structures for graph data.
@@ -10,7 +10,7 @@
 ## Table of Contents
 - [Summary](#summary)
 - [Deployment](#deployment)
-- [Project Challanges](https://github.com/spiltbeans/paa-invoicing/wiki/Project-Challenges)
+- [Project Challenges](https://github.com/spiltbeans/paa-invoicing/wiki/Project-Challenges)
 - [References](https://github.com/spiltbeans/paa-invoicing/wiki/References)
 - [Notes](https://github.com/spiltbeans/paa-invoicing/wiki/Notes)
 
@@ -25,9 +25,9 @@ TODO: automate more of the deployment in the Dockerfile
 https://github.com/spiltbeans/paa-invoicing
 ```
 
-2. Add enviroment variables
+2. Add environment variables
 ```
-touch .env && nano .env
+touch .env.local && nano .env.local
 ```
 The following environment variables are required:
 ```
@@ -37,12 +37,25 @@ BASIC_AUTH_USERNAME=<AUTH_USERNAME>
 BASIC_AUTH_PASSWORD=<AUTH_PASSWORD>
 NEXTAUTH_SECRET=<SECRET_FOR_JWT>
 NEXTAUTH_URL=<APPLICATION_URL>
+```
+3. Add the whitelist file
+> the whitelist file is used to tell the system which entries are valid and should be represented on the graphs
+```
+mkdir src/config/ && touch src/config/whitelist.ts
+```
+The following exports are required:
+```js
+type WL = {
+	[index: string]: Array<string>
+}
+export const whitelist: WL = {
+	'FullUserName': [
+		'FullUserName', 'NickName'
+	]
+}
+export const known_errors: Array<string> = ['some_error']
+```
 
-```
-3. Build the Next.js project
-```
-npm run build
-```
 4. Build and run the Docker container
 ```
 docker-compose build && docker-compose up -d
