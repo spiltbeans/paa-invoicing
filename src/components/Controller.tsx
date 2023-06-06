@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/router'
 import type { SelectChangeEvent } from '@mui/material/Select'
@@ -30,43 +30,45 @@ export default function Controller(
 	{
 		isDefaultCollapsed = false,
 		documentOptions,
-		perspectiveOptions,
+		graphTypeOptions,
 		graphOptions,
-		onDocumentChange,
+		onWorkbookChange,
 		onYRangeChange,
-		onPerspectiveChange,
+		onGraphTypeChange,
 		onAddGraph,
 		onWarning
 
 	}: {
 		isDefaultCollapsed: boolean,
 		documentOptions: Array<string>,
-		perspectiveOptions: Array<string>,
+		graphTypeOptions: Array<string>,
 		graphOptions: Array<string>,
-		onDocumentChange: (d: string) => void,
+		onWorkbookChange: (d: string) => void,
 		onYRangeChange: (y: boolean) => void,
-		onPerspectiveChange: (p: string) => void,
+		onGraphTypeChange: (p: string) => void,
 		onAddGraph: (g: string) => void
 		onWarning: (w: string) => void,
 	}
 ) {
+	useEffect(()=>{
+		// this is a limited solution. if the workbook is changed and the graph type is clients
+		// or employees, the graph is not selected
+		changeGraphType('clients')
+	// eslint-disable-next-line
+	}, [])
+	const SPECIAL_DISPLAY = ['client_trends', 'employee_trends']
 
 	const [collapsed, setCollapsed] = useState(isDefaultCollapsed)
-	const [documentSelect, setDocument] = useState(documentOptions[0])
-	
+	const [workbook, setWorkbook] = useState(documentOptions[0])
+
 	const [searchInp, setSearchInp] = useState('')
 	const [searchValue, setSearchValue] = useState<string | null>(null)
 
 	// display options
-	const [displayType, setDisplayType] = useState('clients')
+	const [graphType, setGraphType] = useState('clients')
 	const [yRelative, setYRelative] = useState(true)
 
 	const router = useRouter()
-
-	const handleDocumentChange = (e: SelectChangeEvent) => {
-		setDocument(e.target.value as string)
-		onDocumentChange(e.target.value as string)
-	}
 
 	// References
 	// https://gist.github.com/ndpniraj/2735c3af00a7c4cbe50602ffe6209fc3
@@ -93,24 +95,42 @@ export default function Controller(
 
 	}
 
+	const handleWorkbookChange = (e: SelectChangeEvent) => {
+		clearSearch()
 
-	const handleChangeYRange = (event: React.MouseEvent<HTMLElement>, yRange: boolean) => {
+		if (e.target.value === 'trends' && !SPECIAL_DISPLAY.includes(graphType)) {
+			changeGraphType('client_trends')
+		}
+
+		if (e.target.value !== 'trends' && SPECIAL_DISPLAY.includes(graphType)) {
+			changeGraphType('clients')
+		}
+
+		setWorkbook(e.target.value as string)
+		onWorkbookChange(e.target.value as string)
+	}
+
+	const handleChangeYRange = (_event: React.MouseEvent<HTMLElement>, yRange: boolean) => {
 		if (yRange !== null) {
 			setYRelative(yRange)
 			onYRangeChange(yRange)
 		}
 	}
-	const handlePerspectiveChange = (e: React.MouseEvent<HTMLElement>, perspective: string) => {
-		if (perspective !== null) {
-			setDisplayType(perspective)
+	const handleGraphTypeChange = (_e: React.MouseEvent<HTMLElement>, type: string) => {
+		changeGraphType(type)
+	}
+
+	const changeGraphType = (type: string) => {
+		if (type !== null) {
+			setGraphType(type)
 			clearSearch()
-			onPerspectiveChange(perspective)
+			onGraphTypeChange(type)
 		}
 	}
 
 	const handleSearchChange = (_e: React.SyntheticEvent<Element, Event>, value: string) => setSearchInp(value)
 
-	const handleSearchValChange = (e: any, newVal: string | null) => setSearchValue(newVal)
+	const handleSearchValChange = (_e: any, newVal: string | null) => setSearchValue(newVal)
 
 	const handleAddGraph = () => {
 		clearSearch()
@@ -135,8 +155,8 @@ export default function Controller(
 						</h2>
 						<div>
 							<Select
-								value={documentSelect}
-								onChange={handleDocumentChange}
+								value={workbook}
+								onChange={handleWorkbookChange}
 							>
 								{documentOptions.map((document, idx) => {
 									return <MenuItem key={idx} value={document}>{document}</MenuItem>
@@ -176,15 +196,15 @@ export default function Controller(
 							</ToggleButtonGroup>
 
 
-							<ToggleButtonGroup value={displayType} exclusive onChange={handlePerspectiveChange}>
-								<ToggleButton className='text-xs' value='clients' disabled={!perspectiveOptions.includes('clients')}>Clients</ToggleButton>
-								<ToggleButton className='text-xs' value='employees' disabled={!perspectiveOptions.includes('employees')}>Employees</ToggleButton>
-								<ToggleButton className='text-xs' value='individual_employees' disabled={!perspectiveOptions.includes('individual_employees')}>Individual Employees</ToggleButton>
-								<ToggleButton className='text-xs' value='individual_clients' disabled={!perspectiveOptions.includes('individual_clients')}>Individual Clients</ToggleButton>
+							<ToggleButtonGroup value={graphType} exclusive onChange={handleGraphTypeChange}>
+								<ToggleButton className='text-xs' value='clients' disabled={!graphTypeOptions.includes('clients')}>Clients</ToggleButton>
+								<ToggleButton className='text-xs' value='employees' disabled={!graphTypeOptions.includes('employees')}>Employees</ToggleButton>
+								<ToggleButton className='text-xs' value='individual_employees' disabled={!graphTypeOptions.includes('individual_employees')}>Individual Employees</ToggleButton>
+								<ToggleButton className='text-xs' value='individual_clients' disabled={!graphTypeOptions.includes('individual_clients')}>Individual Clients</ToggleButton>
 							</ToggleButtonGroup>
-							<ToggleButtonGroup value={displayType} exclusive onChange={handlePerspectiveChange}>
-								<ToggleButton className='text-xs' value='client_trends' disabled={!perspectiveOptions.includes('client_trends')}>Client Trends</ToggleButton>
-								<ToggleButton className='text-xs' value='employee_trends' disabled={!perspectiveOptions.includes('employee_trends')}>Employee Trends</ToggleButton>
+							<ToggleButtonGroup value={graphType} exclusive onChange={handleGraphTypeChange}>
+								<ToggleButton className='text-xs' value='client_trends' disabled={!graphTypeOptions.includes('client_trends')}>Client Trends</ToggleButton>
+								<ToggleButton className='text-xs' value='employee_trends' disabled={!graphTypeOptions.includes('employee_trends')}>Employee Trends</ToggleButton>
 							</ToggleButtonGroup>
 						</div>
 
