@@ -1,10 +1,7 @@
 {
-  "extends": "next/core-web-vitals",
-  "rules": {
-    "eqeqeq": "off",
-    "curly": "off",
-    "quotes": ["error","single"],
-    "semi": ["error", "never"],
-    "indent":["error", "tab"]
-  }
+	"extends": "next/core-web-vitals",
+	"rules": {
+		"eqeqeq": "off",
+		"curly": "off"
+	}
 }
