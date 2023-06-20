@@ -5,8 +5,19 @@ import axios from 'axios'
 // import { useRouter } from 'next/router'
 import {
 	Button,
-	ButtonGroup
+	IconButton
 } from '@chakra-ui/react'
+import {
+	AddIcon,
+	ArrowBackIcon,
+	ArrowForwardIcon
+} from '@chakra-ui/icons'
+import {
+	AutoComplete,
+	AutoCompleteInput,
+	AutoCompleteItem,
+	AutoCompleteList,
+} from "@choc-ui/chakra-autocomplete";
 
 import ToggleButtonGroup from './ToggleButtonGroup'
 // enum DisplayTypes{
@@ -20,28 +31,28 @@ import ToggleButtonGroup from './ToggleButtonGroup'
 // }
 
 export default function Controller(
-	// {
-	// 	isDefaultCollapsed = false,
-	// 	documentOptions,
-	// 	graphTypeOptions,
-	// 	graphOptions,
-	// 	onWorkbookChange,
-	// 	onYRangeChange,
-	// 	onGraphTypeChange,
-	// 	onAddGraph,
-	// 	onWarning
+	{
+		// 	isDefaultCollapsed = false,
+		// 	documentOptions,
+		graphTypeOptions,
+		// 	graphOptions,
+		// 	onWorkbookChange,
+		// 	onYRangeChange,
+		// 	onGraphTypeChange,
+		// 	onAddGraph,
+		// 	onWarning
 
-	// }: {
-	// 	isDefaultCollapsed: boolean,
-	// 	documentOptions: Array<string>,
-	// 	graphTypeOptions: Array<string>,
-	// 	graphOptions: Array<string>,
-	// 	onWorkbookChange: (d: string) => void,
-	// 	onYRangeChange: (y: boolean) => void,
-	// 	onGraphTypeChange: (p: string) => void,
-	// 	onAddGraph: (g: string) => void
-	// 	onWarning: (w: string) => void,
-	// }
+	}: {
+		// 	isDefaultCollapsed: boolean,
+		// 	documentOptions: Array<string>,
+		graphTypeOptions: string[],
+		// 	graphOptions: Array<string>,
+		// 	onWorkbookChange: (d: string) => void,
+		// 	onYRangeChange: (y: boolean) => void,
+		// 	onGraphTypeChange: (p: string) => void,
+		// 	onAddGraph: (g: string) => void
+		// 	onWarning: (w: string) => void,
+	}
 ) {
 	// useEffect(() => {
 	// 	// this is a limited solution. if the workbook is changed and the graph type is clients
@@ -51,15 +62,15 @@ export default function Controller(
 	// }, [])
 	// const SPECIAL_DISPLAY = ['client_trends', 'employee_trends']
 
-	// const [collapsed, setCollapsed] = useState(isDefaultCollapsed)
+	const [collapsed, setCollapsed] = useState(false)
 	// const [workbook, setWorkbook] = useState(documentOptions[0])
 
 	// const [searchInp, setSearchInp] = useState('')
 	// const [searchValue, setSearchValue] = useState<string | null>(null)
 
 	// // display options
-	// const [graphType, setGraphType] = useState('clients')
-	// const [yRelative, setYRelative] = useState(true)
+	const [graphType, setGraphType] = useState('clients')
+	const [yRelative, setYRelative] = useState('true')
 
 	// const router = useRouter()
 
@@ -109,17 +120,17 @@ export default function Controller(
 	// 		onYRangeChange(yRange)
 	// 	}
 	// }
-	// const handleGraphTypeChange = (_e: React.MouseEvent<HTMLElement>, type: string) => {
-	// 	changeGraphType(type)
-	// }
+	const handleGraphTypeChange = (type: string) => {
+		changeGraphType(type)
+	}
 
-	// const changeGraphType = (type: string) => {
-	// 	if (type !== null) {
-	// 		setGraphType(type)
-	// 		clearSearch()
-	// 		onGraphTypeChange(type)
-	// 	}
-	// }
+	const changeGraphType = (type: string) => {
+		if (type !== null) {
+			setGraphType(type)
+			// clearSearch()
+			// onGraphTypeChange(type)
+		}
+	}
 
 	// const handleSearchChange = (_e: React.SyntheticEvent<Element, Event>, value: string) => setSearchInp(value)
 
@@ -134,78 +145,75 @@ export default function Controller(
 	// 	setSearchInp('')
 	// 	setSearchValue(null)
 	// }
-
+	const countries = [
+		"nigeria",
+		"japan",
+		"india",
+		"united states",
+		"south korea",
+	];
 	return (
 		<div>
-			{/* {collapsed && <ArrowBackIcon className='hover:cursor-pointer' onClick={() => setCollapsed(false)} />} */}
-			{/* {!collapsed &&
-				
-			} */}
-
-			<div className='flex flex-col gap-4 px-5'>
-				{/* <ArrowForwardIcon className='hover:cursor-pointer' onClick={() => setCollapsed(true)} /> */}
+			{
+				collapsed ? (
+					<IconButton variant={'outline'} aria-label={'expand controller'} icon={<ArrowBackIcon />} onClick={() => setCollapsed(prev => !prev)} />
+				) : (
 
 
-				<section className='flex flex-col gap-4'>
-					<h2 className='text-base font-bold'>
-						Display Options
-						<hr />
-					</h2>
-					<div className='flex flex-col w-full items-center gap-4'>
-						<ToggleButtonGroup>
-							<Button value={'button1'}>button 1</Button>
-							<Button>button 1</Button>
-							<Button>button 2</Button>
-							<Button>button 1</Button>
-							<Button>button 1</Button>
-							<Button>button 1</Button>
-						</ToggleButtonGroup>
-						<Button>test</Button>
-						{/* <ToggleButtonGroup value={yRelative} exclusive onChange={handleChangeYRange}>
-								<ToggleButton className='text-xs' value={true}>Set Y Range Relative</ToggleButton>
-								<ToggleButton className='text-xs' value={false}>Set Y Range Global</ToggleButton>
-							</ToggleButtonGroup>
+					<div className='flex flex-col gap-4 px-5'>
+						<IconButton variant={'outline'} aria-label={'collapse controller'} icon={<ArrowForwardIcon />} onClick={() => setCollapsed(prev => !prev)} />
 
+						<section className='flex flex-col gap-4'>
+							<h2 className='text-base font-bold'>
+								Display Options
+								<hr />
+							</h2>
+							<div className='flex flex-col w-full items-center gap-4'>
+								<ToggleButtonGroup onChange={(val: string | number) => setYRelative(val as string)}>
+									<Button className='text-xs' value={'true'}>Set Y Range Relative</Button>
+									<Button className='text-xs' value={'false'}>Set Y Range Global</Button>
+								</ToggleButtonGroup>
+								<ToggleButtonGroup onChange={(val: string | number) => handleGraphTypeChange(val as string)}>
+									<Button className='text-xs' value='clients' isDisabled={!graphTypeOptions.includes('clients')}>Clients</Button>
+									<Button className='text-xs' value='employees' isDisabled={!graphTypeOptions.includes('employees')}>Employees</Button>
+									<Button className='text-xs' value='individual_employees' isDisabled={!graphTypeOptions.includes('individual_employees')}>Individual Employees</Button>
+									<Button className='text-xs' value='individual_clients' isDisabled={!graphTypeOptions.includes('individual_clients')}>Individual Clients</Button>
+								</ToggleButtonGroup>
+								<ToggleButtonGroup onChange={(val: string | number) => handleGraphTypeChange(val as string)}>
+									<Button className='text-xs' value='client_trends' disabled={!graphTypeOptions.includes('client_trends')}>Client Trends</Button>
+									<Button className='text-xs' value='employee_trends' disabled={!graphTypeOptions.includes('employee_trends')}>Employee Trends</Button>
+								</ToggleButtonGroup>
+							</div>
 
-							<ToggleButtonGroup value={graphType} exclusive onChange={handleGraphTypeChange}>
-								<ToggleButton className='text-xs' value='clients' disabled={!graphTypeOptions.includes('clients')}>Clients</ToggleButton>
-								<ToggleButton className='text-xs' value='employees' disabled={!graphTypeOptions.includes('employees')}>Employees</ToggleButton>
-								<ToggleButton className='text-xs' value='individual_employees' disabled={!graphTypeOptions.includes('individual_employees')}>Individual Employees</ToggleButton>
-								<ToggleButton className='text-xs' value='individual_clients' disabled={!graphTypeOptions.includes('individual_clients')}>Individual Clients</ToggleButton>
-							</ToggleButtonGroup>
-							<ToggleButtonGroup value={graphType} exclusive onChange={handleGraphTypeChange}>
-								<ToggleButton className='text-xs' value='client_trends' disabled={!graphTypeOptions.includes('client_trends')}>Client Trends</ToggleButton>
-								<ToggleButton className='text-xs' value='employee_trends' disabled={!graphTypeOptions.includes('employee_trends')}>Employee Trends</ToggleButton>
-							</ToggleButtonGroup> */}
+						</section>
+
+						<section className='flex flex-col gap-4'>
+							<h2 className='text-base font-bold'>
+								Add a Graph
+								<hr />
+							</h2>
+							<div className='flex justify-evenly items-center'>
+								<AutoComplete openOnFocus>
+									<AutoCompleteInput variant="outline" placeholder='Search for graph...' />
+									<AutoCompleteList>
+										{countries.map((country, cid) => (
+											<AutoCompleteItem
+												key={`option-${cid}`}
+												value={country}
+												textTransform="capitalize"
+											>
+												{country}
+											</AutoCompleteItem>
+										))}
+									</AutoCompleteList>
+								</AutoComplete>
+								<IconButton variant={'outline'} aria-label={'add graph'} icon={<AddIcon />} />
+							</div>
+						</section>
+
 					</div>
-
-				</section>
-
-				<section className='flex flex-col gap-4'>
-					<h2 className='text-base font-bold'>
-						Add a Graph
-						<hr />
-					</h2>
-					<div className='flex justify-evenly items-center'>
-						{/* <Autocomplete
-								disablePortal
-								freeSolo
-								id={'graph_input'}
-								options={graphOptions}
-								value={searchValue}			// option chosen
-								onChange={handleSearchValChange}
-								inputValue={searchInp}		// what is typed
-								onInputChange={handleSearchChange}
-								className={'w-1/2'}
-								renderInput={(params) => <TextField {...params} label={'Graph Name'} />}
-							/>
-							<Fab size='small' className='bg-gray-400 hover:bg-gray-300' onClick={handleAddGraph}>
-								<AddIcon />
-							</Fab> */}
-					</div>
-				</section>
-
-			</div>
+				)
+			}
 		</div>
 	)
 }

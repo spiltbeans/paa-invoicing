@@ -1,17 +1,25 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
 	Button,
 	ButtonGroup
 } from '@chakra-ui/react'
 
 const ToggleButtonGroup = (
-	{ children }: { children: JSX.Element | JSX.Element[] }
+	{
+		children,
+		initialIndex,
+		onChange
+	}: {
+		children: JSX.Element | JSX.Element[],
+		initialIndex?: number,
+		onChange?: (v: string | number) => any
+	}
 ): JSX.Element => {
-	const [currButton, setCurrButton] = useState<string>('')
+	const [currButton, setCurrButton] = useState<number>(initialIndex ?? 0)
 
-	const getValue = (e: JSX.Element): string => {
+	const getValue = (e: JSX.Element): string | number => {
 		if (e?.props?.value) return e.props.value
 
 		if (typeof e?.props?.children === 'string') return e.props.children
@@ -19,26 +27,24 @@ const ToggleButtonGroup = (
 		return ""
 	}
 
-	useEffect(() => {
-		if (Array.isArray(children)) {
-			// select first element
-			setCurrButton(getValue(children[0]))
-		} else {
-			setCurrButton(getValue(children))
-		}
-	}, [])
+	const handleValueChange = (idx: number) => {
+		setCurrButton(idx)
 
+		if (onChange !== undefined) {
+			(Array.isArray(children)) ? onChange(getValue(children[idx])) : onChange(getValue(children))
+		}
+	}
 	return (
-		<ButtonGroup>
+		<ButtonGroup isAttached variant={'outline'}>
 			{
 				(Array.isArray(children)) ? (
 					children.map((e, idx) => (
-						<ToggleButton key={idx} value={getValue(e)} currValue={currButton} changeValue={setCurrButton}>
+						<ToggleButton key={idx} value={idx} currValue={currButton} changeValue={handleValueChange}>
 							{e}
 						</ToggleButton>
 					))
 				) : (
-					<ToggleButton value={getValue(children)} currValue={currButton} changeValue={setCurrButton}>
+					<ToggleButton value={-1} currValue={currButton} changeValue={() => handleValueChange(-1)}>
 						{children}
 					</ToggleButton>
 				)
@@ -55,9 +61,9 @@ const ToggleButton = (
 		changeValue
 	}: {
 		children: JSX.Element,
-		value: string,
-		currValue: string,
-		changeValue: (new_val: string) => void
+		value: number,
+		currValue: number,
+		changeValue: (new_val: number) => void
 	}
 ) => {
 
@@ -67,8 +73,6 @@ const ToggleButton = (
 		changeValue(value)
 		if (onClick) onClick()
 	}
-	return <Button {...props} isDisabled={value === currValue} onClick={handleClick} />
-
-
+	return <Button {...props} isActive={value === currValue} onClick={handleClick} />
 }
 export default ToggleButtonGroup
