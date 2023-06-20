@@ -37,3 +37,4 @@ next-env.d.ts
 /src/config/whitelist.ts
 .turbo
 /data
+/logs
