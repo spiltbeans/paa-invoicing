@@ -59,9 +59,8 @@ type DataElement = {
 	value: number
 }
 
-interface FormattedData {
-	[graph_label: string]: Array<DataElement>
-}
+type FormattedData = Map<string, DataElement[]>
+
 interface GraphPayload {
 	[graph_type: string]: AllEmployeeHours | CCHours | {
 		[sub_type: string]: EmployeeHours | ClientHours

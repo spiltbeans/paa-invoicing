@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import axios from 'axios'
-// import { useRouter } from 'next/router'
 import {
 	Button,
 	IconButton
@@ -68,36 +66,10 @@ export default function Controller(
 	// const [searchInp, setSearchInp] = useState('')
 	// const [searchValue, setSearchValue] = useState<string | null>(null)
 
-	// // display options
+	// display options
 	const [graphType, setGraphType] = useState('clients')
 	const [yRelative, setYRelative] = useState('true')
 
-	// const router = useRouter()
-
-	// References
-	// https://gist.github.com/ndpniraj/2735c3af00a7c4cbe50602ffe6209fc3
-	// https://stackoverflow.com/questions/59233036/react-typescript-get-files-from-file-input
-	// const handleFileUpload = (e: React.FormEvent<HTMLInputElement>) => {
-	// 	try {
-	// 		if (e.currentTarget?.files) {
-	// 			const file = e.currentTarget.files[0]
-
-	// 			if (!file) return
-
-	// 			const formData = new FormData()
-	// 			formData.append('newFile', file)
-	// 			axios.post('/api/xlsx', formData)
-	// 				.then(({ data }) => {
-	// 					if (data.status) return router.replace(router.asPath)
-
-	// 					onWarning(data.message)
-	// 				})
-	// 		}
-	// 	} catch (err: any) {
-	// 		onWarning(JSON.stringify(err))
-	// 	}
-
-	// }
 
 	// const handleWorkbookChange = (e: any) => {
 	// 	clearSearch()
@@ -153,7 +125,7 @@ export default function Controller(
 		"south korea",
 	];
 	return (
-		<div>
+		<div className='border p-5 min-h-[370px]'>
 			{
 				collapsed ? (
 					<IconButton variant={'outline'} aria-label={'expand controller'} icon={<ArrowBackIcon />} onClick={() => setCollapsed(prev => !prev)} />
