@@ -13,7 +13,12 @@ import {
 	ModalCloseButton,
 	useDisclosure
 } from '@chakra-ui/react'
-export default function GraphPanel() {
+import { load_data_sheets } from '@/modules/chart_utils'
+
+// const load_sheets = async () => {
+// 	return load_data_sheets()
+// }
+export default async function GraphPanel() {
 	const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure()
 	const handleFileUpload = () => { }
 
@@ -36,6 +41,10 @@ export default function GraphPanel() {
 			]
 		]
 	])
+
+	const d = await load_data_sheets()
+
+	console.log(d)
 	return (
 		<div id='graph-panel-wrapper' className='flex flex-col gap-5 py-5'>
 			<HStack id='sheet-selector-wrapper'>

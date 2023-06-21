@@ -1,134 +1,170 @@
 
-// import { whitelist } from '../config/whitelist'
-// import { dataFormatter } from './xls_parser'
+import { whitelist } from '../config/whitelist'
+import { dataFormatter } from './xls_parser'
 
-// export const employee_hour_client = (data: AllEmployeeHours): CCHours => {
-// 	const cch: CCHours = {}
-// 	for (let client in data) {
-// 		for (let employee in data[client]) {
-// 			if (cch.hasOwnProperty(employee)) {
-// 				if ((cch[employee]).hasOwnProperty(client)) {
-// 					cch[employee][client] = cch[employee][client] + data[client][employee]
-// 				} else {
-// 					cch[employee][client] = data[client][employee]
-// 				}
-// 			} else {
-// 				cch[employee] = ({ [client]: data[client][employee] })
-// 			}
-// 		}
-// 	}
-// 	return cch
-// }
+export const employee_hour_client = (data: AllEmployeeHours): CCHours => {
+	const cch: CCHours = new Map<EmployeeName, ClientHours>()
+	for (let client of data) {
+		for (let employee of client[1]) {
+			if (cch.has(employee[0])) {
 
-// export const hour_employees = (data: AllEmployeeHours): EmployeeHours => {
-// 	const eh: EmployeeHours = {}
+				if (cch.get(employee[0])?.has(client[0])) {
+					// this should work because maps are passed by reference
 
-// 	for (let client in data) {
-// 		for (let employee in data[client]) {
-// 			if (eh.hasOwnProperty(employee)) {
-// 				eh[employee] = eh[employee] + data[client][employee]
-// 			} else {
-// 				eh[employee] = data[client][employee]
-// 			}
-// 		}
-// 	}
+					const t = (cch.get(employee[0]) as ClientHours)
+					t?.set(
+						client[0],
+						(t.get(client[0]) as number) + employee[1]
+					)
+					cch.set(
+						employee[0],
+						new Map<ClientName, number>([...t])
+					)
+				} else {
+					cch.set(
+						employee[0],
+						new Map<ClientName, number>([...(cch.get(employee[0]) as ClientHours), [client[0], employee[1]]])
+					)
+				}
+			} else {
+				cch.set(
+					employee[0],
+					new Map([[client[0], employee[1]]])
+				)
+			}
+		}
+	}
+	return cch
+}
 
-// 	// edge case where employee did not enter any time into the work description
-// 	for (let wlm in whitelist) {
-// 		if (!eh.hasOwnProperty(wlm)) eh[wlm] = 0
-// 	}
+export const hour_employees = (data: AllEmployeeHours): EmployeeHours => {
+	const eh: EmployeeHours = new Map<string, number>()
 
-// 	return eh
-// }
+	for (let client of data) {
+		for (let employee of client[1]) {
+			if (eh.has(employee[0])) {
+				eh.set(
+					employee[0],
+					employee[1] + (eh.get(employee[0]) as number)
+				)
+			} else {
+				eh.set(
+					employee[0],
+					employee[1]
+				)
+			}
+		}
+	}
 
-// export const hour_client = (data: AllEmployeeHours): ClientHours => {
-// 	const ch: ClientHours = {}
+	// edge case where employee did not enter any time into the work description
+	for (let wlm in whitelist) {
+		if (!eh.has(wlm)) eh.set(wlm, 0)
+	}
 
-// 	for (let client in data) {
-// 		for (let employee in data[client]) {
-// 			if (ch.hasOwnProperty(client)) {
-// 				ch[client] = ch[client] + data[client][employee]
-// 			} else {
-// 				ch[client] = data[client][employee]
-// 			}
-// 		}
+	return eh
+}
 
-// 		// edge case where no work has been done to a client file
-// 		if (Object.keys(data[client]).length < 1) {
-// 			ch[client] = 0
-// 		}
-// 	}
+export const hour_client = (data: AllEmployeeHours): ClientHours => {
+	const ch: ClientHours = new Map<string, number>()
 
-// 	return ch
-// }
+	for (let client of data) {
+		for (let employee of client[1]) {
 
-// type DStruc = {
-// 	[d_type: string]: string
-// }
-// const fileSorting = ((a: DataElement, b: DataElement) => {
-// 	// date collection algorithm
-// 	// get the label
-// 	// collect respective dates for comparison
+			if (ch.has(client[0])) {
+				ch.set(
+					client[0],
+					(ch.get(client[0]) as number) + employee[1]
+				)
+			} else {
+				ch.set(
+					client[0],
+					employee[1]
+				)
+			}
+		}
 
-// 	const a_dates = ((a.label).split('.')[0]).split('-')
+		// edge case where no work has been done to a client file
+		if ((data.get(client[0]) as EmployeeHours).size < 1) {
+			ch.set(
+				client[0],
+				0
+			)
+		}
+	}
 
-// 	const a_date: DStruc = {
-// 		'year': '00',
-// 		'month': '00',
-// 		'date': '00'
-// 	}
+	return ch
+}
 
-// 	let i = a_dates.length - 1
-// 	for (let d in a_date) {
-// 		if (i < 0) break
 
-// 		a_date[d] = a_dates[i]
-// 		i = i - 1
-// 	}
+const fileSorting = ((a: DataElement, b: DataElement) => {
+	// date collection algorithm
+	// get the label
+	// collect respective dates for comparison
 
-// 	const b_dates = ((b.label).split('.')[0]).split('-')
+	// separate the string by the period (before the file type)
+	// and the hyphen (separating the date formatting)
+	const a_dates = ((a.label).split('.')[0]).split('-')
 
-// 	const b_date: DStruc = {
-// 		'year': '00',
-// 		'month': '00',
-// 		'date': '00'
-// 	}
+	const a_date: DateStructure = {
+		'year': '00',
+		'month': '00',
+		'day': '00'
+	}
 
-// 	i = b_dates.length - 1
-// 	for (let d in b_date) {
-// 		if (i < 0) break
+	// collect the date by moving from last position x3
+	let i = a_dates.length - 1
+	for (let d in a_date) {
+		if (i < 0) break
 
-// 		b_date[d] = b_dates[i]
-// 		i = i - 1
-// 	}
+		a_date[d as keyof DateStructure] = a_dates[i]
+		i = i - 1
+	}
 
-// 	// doing date comparison
+	// separate the string by the period (before the file type)
+	// and the hyphen (separating the date formatting)
+	const b_dates = ((b.label).split('.')[0]).split('-')
 
-// 	// doesn't matter which struct to loop through, both have same keys
-// 	for (let d in a_date) {
+	const b_date: DateStructure = {
+		'year': '00',
+		'month': '00',
+		'day': '00'
+	}
 
-// 		// if a is NaN then put it behind b (leftmost)
-// 		if (isNaN(parseInt(a_date[d]))) return 1
+	// collect the date by moving from last position x3
+	i = b_dates.length - 1
+	for (let d in b_date) {
+		if (i < 0) break
 
-// 		// if b is NaN then put it behind a (leftmost)
-// 		if (isNaN(parseInt(b_date[d]))) return -1
+		b_date[d as keyof DateStructure] = b_dates[i]
+		i = i - 1
+	}
 
-// 		// if both are numbers, compare which is greater
+	// doing date comparison
 
-// 		// we don't return 0 because this would indicate we need to check the next parameter.
-// 		// we only return 0 when all parameters have been checked. If there's been no return it indicates there's no difference
-// 		if ((parseInt(b_date[d]) === parseInt(a_date[d]))) continue
+	// doesn't matter which struct to loop through, both have same keys
+	for (let d in a_date) {
+		// if a is NaN then put it behind b (leftmost)
+		if (isNaN(parseInt(a_date[d as keyof DateStructure]))) return 1
 
-// 		return (parseInt(a_date[d]) - parseInt(b_date[d]))
+		// if b is NaN then put it behind a (leftmost)
+		if (isNaN(parseInt(b_date[d as keyof DateStructure]))) return -1
 
-// 	}
-// 	return 0
-// })
+		// if both are numbers, compare which is greater
+
+		// we don't return 0 because this would indicate we need to check the next parameter.
+		// we only return 0 when all parameters have been checked. If there's been no return it indicates there's no difference
+		if ((parseInt(b_date[d as keyof DateStructure]) === parseInt(a_date[d as keyof DateStructure]))) continue
+
+		return (parseInt(a_date[d as keyof DateStructure]) - parseInt(b_date[d as keyof DateStructure]))
+
+	}
+	return 0
+})
 
 // export const client_hour_trend = (trend: TrendClients): FormattedData => {
 // 	// note: this utilizes AllEmployeeHours structure, but with the following changed:
 // 	// - employee_name -> bill_period/file_name/sheet_name
-// 	const ch: AllEmployeeHours = {}
+// 	const ch: AllEmployeeHours = new Map<ClientName, EmployeeHours>()
 
 // 	// assumptions: 
 // 	// (1) there is only 1 client per document
