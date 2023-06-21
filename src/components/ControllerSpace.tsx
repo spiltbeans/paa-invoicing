@@ -125,22 +125,21 @@ export default function Controller(
 		"south korea",
 	];
 	return (
-		<div className='border p-5 min-h-[370px]'>
+		<>
 			{
 				collapsed ? (
-					<IconButton variant={'outline'} aria-label={'expand controller'} icon={<ArrowBackIcon />} onClick={() => setCollapsed(prev => !prev)} />
+					<IconButton id='controller-expand-btn' variant={'outline'} aria-label={'expand controller'} icon={<ArrowBackIcon />} onClick={() => setCollapsed(prev => !prev)} />
 				) : (
 
+					<div id='controller-wrapper' className='flex flex-col border gap-4 justify-between p-8' >
+						<IconButton id='controller-collapse-btn' variant={'outline'} aria-label={'collapse controller'} icon={<ArrowForwardIcon />} onClick={() => setCollapsed(prev => !prev)} />
 
-					<div className='flex flex-col gap-4 px-5'>
-						<IconButton variant={'outline'} aria-label={'collapse controller'} icon={<ArrowForwardIcon />} onClick={() => setCollapsed(prev => !prev)} />
-
-						<section className='flex flex-col gap-4'>
-							<h2 className='text-base font-bold'>
+						<section id='controller-display-opt-wrapper' className='flex flex-col gap-4'>
+							<h2 id='controller-display-label' className='text-base font-bold'>
 								Display Options
 								<hr />
 							</h2>
-							<div className='flex flex-col w-full items-center gap-4'>
+							<div id='controller-display-toggle-btns-wrapper' className='flex flex-col w-full items-center gap-4'>
 								<ToggleButtonGroup onChange={(val: string | number) => setYRelative(val as string)}>
 									<Button className='text-xs' value={'true'}>Set Y Range Relative</Button>
 									<Button className='text-xs' value={'false'}>Set Y Range Global</Button>
@@ -159,12 +158,12 @@ export default function Controller(
 
 						</section>
 
-						<section className='flex flex-col gap-4'>
-							<h2 className='text-base font-bold'>
+						<section id='controller-add-graph-opt-wrapper' className='flex flex-col gap-4'>
+							<h2 id='controller-add-graph-label' className='text-base font-bold'>
 								Add a Graph
 								<hr />
 							</h2>
-							<div className='flex justify-evenly items-center'>
+							<div id='controller-add-graph-select-wrapper' className='flex justify-evenly items-center'>
 								<AutoComplete openOnFocus>
 									<AutoCompleteInput variant="outline" placeholder='Search for graph...' />
 									<AutoCompleteList>
@@ -179,13 +178,14 @@ export default function Controller(
 										))}
 									</AutoCompleteList>
 								</AutoComplete>
-								<IconButton variant={'outline'} aria-label={'add graph'} icon={<AddIcon />} />
+								<IconButton id='controller-add-graph-btn' variant={'outline'} aria-label={'add graph'} icon={<AddIcon />} />
 							</div>
 						</section>
 
-					</div>
+					</ div>
 				)
 			}
-		</div>
+		</>
+
 	)
 }
