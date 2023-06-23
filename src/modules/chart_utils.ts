@@ -3,7 +3,25 @@ import path from 'path'
 import { processXLS, dataFormatter } from './xls_parser'
 // import { client_hour_trend, employee_hour_trend } from './chart_generators'
 
-export const load_data_sheets = (): SheetsPayload => {
+export const getSheetNames = async () => {
+	try {
+		const files = fs.readdirSync(path.join(process.cwd(), process.env.DATA_ORIGIN ?? ''))
+		return {
+			status: 'OK',
+			files
+		}
+	} catch (e: unknown) {
+		const knownErr = e as Error
+
+		return {
+			status: 'FAIL',
+			message: `error loading workbooks: ${knownErr.toString()}`
+		}
+	}
+
+}
+
+export const load_data_sheets = async (): Promise<SheetsPayload> => {
 	try {
 
 		// get files uploaded to filesystem
