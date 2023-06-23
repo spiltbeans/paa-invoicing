@@ -20,11 +20,11 @@ export default function ChartSpace(
 	}
 ) {
 	return (
-		<>
+		<div className={'flex flex-col flex-1 border gap-4 py-4'}>
 			{Object.keys(graphs ?? {})?.map((label, idx) => {
 				return (
-					<div id='data-chart' className='w-full' key={idx}>
-						<div className='flex items-center gap-5 ml-8 my-4'>
+					<div id='data-chart' key={idx}>
+						<div className='flex items-center gap-5 my-4 ml-8'>
 							<Fab size='small' onClick={() => onRemoveGraph(label)}>
 								<CloseIcon />
 							</Fab>
@@ -34,6 +34,6 @@ export default function ChartSpace(
 					</div>
 				)
 			})}
-		</>
+		</div>
 	)
 }

@@ -50,11 +50,11 @@ export default function Controller(
 		onWarning: (w: string) => void,
 	}
 ) {
-	useEffect(()=>{
+	useEffect(() => {
 		// this is a limited solution. if the workbook is changed and the graph type is clients
 		// or employees, the graph is not selected
 		changeGraphType('clients')
-	// eslint-disable-next-line
+		// eslint-disable-next-line
 	}, [])
 	const SPECIAL_DISPLAY = ['client_trends', 'employee_trends']
 
@@ -143,99 +143,104 @@ export default function Controller(
 	}
 
 	return (
-		<div>
-			{collapsed && <ArrowBackIcon className='hover:cursor-pointer' onClick={() => setCollapsed(false)} />}
-			{!collapsed &&
-				<div className='flex flex-col gap-4 px-5'>
-					<ArrowForwardIcon className='hover:cursor-pointer' onClick={() => setCollapsed(true)} />
-					<section className='flex flex-col gap-4'>
-						<h2 className='text-base font-bold'>
-							Select from already existing data
-							<hr />
-						</h2>
-						<div>
-							<Select
-								value={workbook}
-								onChange={handleWorkbookChange}
-							>
-								{documentOptions.map((document, idx) => {
-									return <MenuItem key={idx} value={document}>{document}</MenuItem>
-								})}
-							</Select>
-						</div>
+		<>
+			{
+				collapsed ? (
+					<ArrowBackIcon className='hover:cursor-pointer' onClick={() => setCollapsed(false)} />
+				) : (
+					<div className='flex flex-col gap-4 px-5 border py-11'>
+						<ArrowForwardIcon className='hover:cursor-pointer' onClick={() => setCollapsed(true)} />
+						<section className='flex flex-col gap-4'>
+							<h2 className='text-base font-bold'>
+								Select from already existing data
+								<hr />
+							</h2>
+							<div>
+								<Select
+									value={workbook}
+									onChange={handleWorkbookChange}
+								>
+									{documentOptions.map((document, idx) => {
+										return <MenuItem key={idx} value={document}>{document}</MenuItem>
+									})}
+								</Select>
+							</div>
 
-					</section>
+						</section>
 
-					<section className='flex flex-col gap-4'>
-						<h2 className='text-base font-bold'>
-							Upload your own data
-							<hr />
-						</h2>
-						<Tooltip title="replace data by uploading a sheet with the same name">
-							<input type='file' onChange={handleFileUpload}></input>
-						</Tooltip>
-						<div className='flex flex-col w-96'>
-							<em>
-								{'Note on "trend" feature: files are sorted by date in format of [text]-[DD]-[MM]-[YY].xlsx.'}
-							</em>
-							<em>
-								{'The system will attempt to sort even if some date formatting is missing (i.e., [text]-[MM]-[YY].xlsx), but if the system cannot recognize a valid date formatting, the bar will be positioned left-wise.'}
-							</em>
-						</div>
+						<section className='flex flex-col gap-4'>
+							<h2 className='text-base font-bold'>
+								Upload your own data
+								<hr />
+							</h2>
+							<Tooltip title="replace data by uploading a sheet with the same name">
+								<input type='file' onChange={handleFileUpload}></input>
+							</Tooltip>
+							<div className='flex flex-col w-96'>
+								<em>
+									{'Note on "trend" feature: files are sorted by date in format of [text]-[DD]-[MM]-[YY].xlsx.'}
+								</em>
+								<em>
+									{'The system will attempt to sort even if some date formatting is missing (i.e., [text]-[MM]-[YY].xlsx), but if the system cannot recognize a valid date formatting, the bar will be positioned left-wise.'}
+								</em>
+							</div>
 
-					</section>
-					<section className='flex flex-col gap-4'>
-						<h2 className='text-base font-bold'>
-							Display Options
-							<hr />
-						</h2>
-						<div className='flex flex-col w-full items-center gap-4'>
-							<ToggleButtonGroup value={yRelative} exclusive onChange={handleChangeYRange}>
-								<ToggleButton className='text-xs' value={true}>Set Y Range Relative</ToggleButton>
-								<ToggleButton className='text-xs' value={false}>Set Y Range Global</ToggleButton>
-							</ToggleButtonGroup>
+						</section>
+						<section className='flex flex-col gap-4'>
+							<h2 className='text-base font-bold'>
+								Display Options
+								<hr />
+							</h2>
+							<div className='flex flex-col items-center w-full gap-4'>
+								<ToggleButtonGroup value={yRelative} exclusive onChange={handleChangeYRange}>
+									<ToggleButton className='text-xs' value={true}>Set Y Range Relative</ToggleButton>
+									<ToggleButton className='text-xs' value={false}>Set Y Range Global</ToggleButton>
+								</ToggleButtonGroup>
 
 
-							<ToggleButtonGroup value={graphType} exclusive onChange={handleGraphTypeChange}>
-								<ToggleButton className='text-xs' value='clients' disabled={!graphTypeOptions.includes('clients')}>Clients</ToggleButton>
-								<ToggleButton className='text-xs' value='employees' disabled={!graphTypeOptions.includes('employees')}>Employees</ToggleButton>
-								<ToggleButton className='text-xs' value='individual_employees' disabled={!graphTypeOptions.includes('individual_employees')}>Individual Employees</ToggleButton>
-								<ToggleButton className='text-xs' value='individual_clients' disabled={!graphTypeOptions.includes('individual_clients')}>Individual Clients</ToggleButton>
-							</ToggleButtonGroup>
-							<ToggleButtonGroup value={graphType} exclusive onChange={handleGraphTypeChange}>
-								<ToggleButton className='text-xs' value='client_trends' disabled={!graphTypeOptions.includes('client_trends')}>Client Trends</ToggleButton>
-								<ToggleButton className='text-xs' value='employee_trends' disabled={!graphTypeOptions.includes('employee_trends')}>Employee Trends</ToggleButton>
-							</ToggleButtonGroup>
-						</div>
+								<ToggleButtonGroup value={graphType} exclusive onChange={handleGraphTypeChange}>
+									<ToggleButton className='text-xs' value='clients' disabled={!graphTypeOptions.includes('clients')}>Clients</ToggleButton>
+									<ToggleButton className='text-xs' value='employees' disabled={!graphTypeOptions.includes('employees')}>Employees</ToggleButton>
+									<ToggleButton className='text-xs' value='individual_employees' disabled={!graphTypeOptions.includes('individual_employees')}>Individual Employees</ToggleButton>
+									<ToggleButton className='text-xs' value='individual_clients' disabled={!graphTypeOptions.includes('individual_clients')}>Individual Clients</ToggleButton>
+									<ToggleButton className='text-xs' value='tech_payments' disabled={!graphTypeOptions.includes('individual_clients')}>Tech and Payments</ToggleButton>
+								</ToggleButtonGroup>
+								<ToggleButtonGroup value={graphType} exclusive onChange={handleGraphTypeChange}>
+									<ToggleButton className='text-xs' value='client_trends' disabled={!graphTypeOptions.includes('client_trends')}>Client Trends</ToggleButton>
+									<ToggleButton className='text-xs' value='employee_trends' disabled={!graphTypeOptions.includes('employee_trends')}>Employee Trends</ToggleButton>
+								</ToggleButtonGroup>
+							</div>
 
-					</section>
+						</section>
 
-					<section className='flex flex-col gap-4'>
-						<h2 className='text-base font-bold'>
-							Add a Graph
-							<hr />
-						</h2>
-						<div className='flex justify-evenly items-center'>
-							<Autocomplete
-								disablePortal
-								freeSolo
-								id={'graph_input'}
-								options={graphOptions}
-								value={searchValue}			// option chosen
-								onChange={handleSearchValChange}
-								inputValue={searchInp}		// what is typed
-								onInputChange={handleSearchChange}
-								className={'w-1/2'}
-								renderInput={(params) => <TextField {...params} label={'Graph Name'} />}
-							/>
-							<Fab size='small' className='bg-gray-400 hover:bg-gray-300' onClick={handleAddGraph}>
-								<AddIcon />
-							</Fab>
-						</div>
-					</section>
+						<section className='flex flex-col gap-4'>
+							<h2 className='text-base font-bold'>
+								Add a Graph
+								<hr />
+							</h2>
+							<div className='flex items-center justify-evenly'>
+								<Autocomplete
+									disablePortal
+									freeSolo
+									id={'graph_input'}
+									options={graphOptions}
+									value={searchValue}			// option chosen
+									onChange={handleSearchValChange}
+									inputValue={searchInp}		// what is typed
+									onInputChange={handleSearchChange}
+									className={'w-1/2'}
+									renderInput={(params) => <TextField {...params} label={'Graph Name'} />}
+								/>
+								<Fab size='small' className='bg-gray-400 hover:bg-gray-300' onClick={handleAddGraph}>
+									<AddIcon />
+								</Fab>
+							</div>
+						</section>
 
-				</div>
+					</div>
+				)
 			}
-		</div>
+		</>
+
 	)
 }

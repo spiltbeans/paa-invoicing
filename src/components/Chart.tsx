@@ -27,7 +27,7 @@ export default function Chart(
 ) {
 	const sortedData = autoSort ? data.sort((a, b) => a.value - b.value) : data
 	return (
-		<ResponsiveContainer width={'100%'} height={300}>
+		<ResponsiveContainer width={'99%'} height={300}>
 			<BarChart
 				data={sortedData}
 				margin={{

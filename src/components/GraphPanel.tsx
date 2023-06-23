@@ -11,7 +11,7 @@ import Controller from '@/components/Controller'
 import ChartSpace from '@/components/ChartSpace'
 import Errors from '@/components/Errors'
 
-
+import { tech_payment } from '@/config/whitelist'
 export default function GraphPanel({ sheetsPayload, onWarning }: { sheetsPayload: SheetsPayload, onWarning: (w: string) => void }) {
 
 	const SPECIAL_DISPLAY = ['client_trends', 'employee_trends']
@@ -27,22 +27,10 @@ export default function GraphPanel({ sheetsPayload, onWarning }: { sheetsPayload
 	const [yRelative, setYRelative] = useState<boolean>(true)
 	const [autoSort, setAutoSort] = useState<boolean>(true)
 
-	const maxValue: number = useMemo(() => {
 
-		const d = sheetsPayload?.data?.[workbook]?.data
-
-		if (d === undefined) return 0
-
-		const graph_labels: Array<string> = (Object.keys(d?.[graphType] ?? {}))
-		const graph_values: Array<number> = graph_labels.map(label => (
-			(d?.[graphType]?.[label]).map((element: DataElement) => element.value)
-		)).flat()
-
-		return Math.max(...graph_values)
-	}, [sheetsPayload, graphType, workbook])
 
 	const selectedGraphs = useMemo(() => {
-		const available_graphs = sheetsPayload?.data?.[workbook]?.['data']?.[graphType] ?? {}
+		const available_graphs = sheetsPayload?.data?.[workbook]?.['data']?.[graphType === 'tech_payments' ? 'individual_clients' : graphType] ?? {}
 		return graphs.reduce((previousValue: FormattedData, currentValue: string | undefined): FormattedData => {
 			if (currentValue === undefined) return previousValue
 
@@ -52,8 +40,20 @@ export default function GraphPanel({ sheetsPayload, onWarning }: { sheetsPayload
 	}, [graphType, graphs, sheetsPayload?.data, workbook])
 
 
-	const handleAddGraph = (g: string) => {
-		if (g !== null && g.length > 1 && !graphs.includes(g)) setGraphs((prev) => [g, ...prev])
+	const maxValue: number = useMemo(() => {
+		if (Object.keys(selectedGraphs).length < 1) return 0
+		let running: number[] = []
+		for (let c in selectedGraphs) {
+			running = [...running, ...selectedGraphs[c].map(e => e.value)]
+		}
+		return Math.max(...running)
+	}, [selectedGraphs])
+
+	const handleAddGraph = (g: string, p?:string) => {
+		const def = p ?? graphType
+		const graph_exists = (sheetsPayload?.data?.[workbook]?.['data']?.[def === 'tech_payments' ? 'individual_clients' : def] ?? {}).hasOwnProperty(g)
+
+		if (g !== null && g.length > 1 && !graphs.includes(g) && graph_exists) setGraphs((prev) => [g, ...prev])
 	}
 
 	const handleRemoveGraph = (g: string) => {
@@ -81,12 +81,17 @@ export default function GraphPanel({ sheetsPayload, onWarning }: { sheetsPayload
 	}
 
 	const handleGraphTypeChange = (p: string) => {
+		setGraphType(p)
 		if (p === 'clients' || p === 'employees') {
 			setGraphs(Object.keys(sheetsPayload.data?.[workbook]?.data?.[p] ?? {}))
+		} else if (p === 'tech_payments') {
+			setGraphs([])
+			for (let g of tech_payment) {
+				handleAddGraph(g, p)	// this is because the client may not exist in sheet
+			}
 		} else {
 			setGraphs([])
 		}
-		setGraphType(p)
 	}
 
 	const handleChangePanel = (_event: React.SyntheticEvent, newValue: number) => {
@@ -106,29 +111,24 @@ export default function GraphPanel({ sheetsPayload, onWarning }: { sheetsPayload
 			{
 				panel === 0 ? (
 					<div id='display-space' className='flex w-full gap-4'>
-						<div id='data-charts' className={'flex flex-col w-3/4 border gap-4 py-4'}>
-							<ChartSpace
-								graphs={selectedGraphs}
-								autoSort={autoSort}
-								onRemoveGraph={handleRemoveGraph}
-								maxValue={yRelative ? undefined : maxValue}
-							/>
-						</div>
+						<ChartSpace
+							graphs={selectedGraphs}
+							autoSort={autoSort}
+							onRemoveGraph={handleRemoveGraph}
+							maxValue={yRelative ? undefined : maxValue}
+						/>
 
-						<div id='data-controller' className='w-fit border py-11'>
-							<Controller
-								isDefaultCollapsed={false}
-								documentOptions={Object.keys(sheetsPayload?.data ?? {})}
-								graphTypeOptions={Object.keys(sheetsPayload?.data?.[workbook]?.data ?? {})}
-								graphOptions={Object.keys(sheetsPayload?.data?.[workbook]?.data?.[graphType] ?? {})}
-								onWorkbookChange={handleWorkbookChange}
-								onYRangeChange={setYRelative}
-								onGraphTypeChange={handleGraphTypeChange}
-								onAddGraph={handleAddGraph}
-								onWarning={onWarning}
-							/>
-
-						</div>
+						<Controller
+							isDefaultCollapsed={false}
+							documentOptions={Object.keys(sheetsPayload?.data ?? {})}
+							graphTypeOptions={Object.keys(sheetsPayload?.data?.[workbook]?.data ?? {})}
+							graphOptions={Object.keys(sheetsPayload?.data?.[workbook]?.data?.[graphType] ?? {})}
+							onWorkbookChange={handleWorkbookChange}
+							onYRangeChange={setYRelative}
+							onGraphTypeChange={handleGraphTypeChange}
+							onAddGraph={handleAddGraph}
+							onWarning={onWarning}
+						/>
 					</div>
 				) : (
 					<div id='data-input' className='flex flex-col justify-center gap-4'>
