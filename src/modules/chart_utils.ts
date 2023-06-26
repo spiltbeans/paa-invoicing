@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { processXLS, dataFormatter } from './xls_parser'
 import { client_hour_trend, employee_hour_trend } from './chart_generators'
+import { tech_payment } from '@/config/whitelist'
 
 export const load_data_sheets = (): SheetsPayload => {
 	try {
@@ -13,6 +14,8 @@ export const load_data_sheets = (): SheetsPayload => {
 
 		const trend_employees: TrendEmployees = {}
 		const trend_clients: TrendClients = {}
+
+		const tech_payment_trend: TP = {}
 
 		// get the graph data for each file in filesystem
 		for (let file of files) {
@@ -36,12 +39,22 @@ export const load_data_sheets = (): SheetsPayload => {
 			}
 
 			ds[file]['data'] = d
-
+			for (let t of tech_payment) {
+				if (!(ds?.[file]?.['data']?.['individual_clients'])?.hasOwnProperty(t)) continue
+				if (tech_payment_trend.hasOwnProperty(t)) {
+					tech_payment_trend[t][file] = ds?.[file]?.['data']?.['individual_clients'][t] as DataElement[]
+				} else {
+					tech_payment_trend[t] = {
+						[file]: ds?.[file]?.['data']?.['individual_clients'][t] as DataElement[]
+					}
+				}
+			}
 			// collect the trend data point for this file. need the clients and employees data
 			const { clients, employees } = data
 			trend_employees[file] = {
 				employees: employees?.employees as EmployeeHours
 			}
+			// console.log(clients)
 			trend_clients[file] = {
 				clients: clients?.clients as ClientHours
 			}
@@ -56,9 +69,13 @@ export const load_data_sheets = (): SheetsPayload => {
 				status: 'OK',
 				data: {
 					'client_trends': client_hour_trend(trend_clients),
-					'employee_trends': employee_hour_trend(trend_employees)
+					'employee_trends': employee_hour_trend(trend_employees),
 				}
 			}
+		}
+
+		ds['experimental'] = {
+			data: tech_payment_trend
 		}
 
 		return ({

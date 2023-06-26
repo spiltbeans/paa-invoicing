@@ -126,6 +126,8 @@ const fileSorting = ((a: DataElement, b: DataElement) => {
 })
 
 export const client_hour_trend = (trend: TrendClients): FormattedData => {
+	// console.log(trend)
+
 	// note: this utilizes AllEmployeeHours structure, but with the following changed:
 	// - employee_name -> bill_period/file_name/sheet_name
 	const ch: AllEmployeeHours = {}
@@ -155,6 +157,39 @@ export const client_hour_trend = (trend: TrendClients): FormattedData => {
 	}
 	return r
 }
+
+
+export const experimental_hour_trend = (trend: TrendClients): FormattedData => {
+	// note: this utilizes AllEmployeeHours structure, but with the following changed:
+	// - employee_name -> bill_period/file_name/sheet_name
+	const ch: AllEmployeeHours = {}
+
+	// assumptions: 
+	// (1) there is only 1 client per document
+	for (let sheet in trend) {
+		for (let client in trend[sheet].clients) {
+			if (ch.hasOwnProperty(client)) {
+				ch[client][sheet] = trend[sheet].clients[client]
+			} else {
+				ch[client] = {
+					[sheet]: trend[sheet].clients[client]
+				}
+			}
+		}
+	}
+
+	// do some sorting
+	// note: this sorting needs to be the final version, so
+	// we need login in the index.tsx map to disable auto-sorting in the chart
+
+	let r: FormattedData = (dataFormatter(ch))
+
+	for (let client in r) {
+		r[client] = (r[client]).sort(fileSorting)
+	}
+	return r
+}
+
 
 export const employee_hour_trend = (trend: TrendEmployees): FormattedData => {
 	// note: this utilizes AllEmployeeHours structure, but with the following changed:

@@ -45,6 +45,11 @@ interface EmployeeHours {
 // This is not a module response, but every sheet
 // will have a status so that the front end can parse the data
 // with a more convenient comparison
+type TP = {
+	[client: string]: {
+		[sheet: string]: DataElement[]
+	}
+}
 interface WorkbooksData {
 	[workbook: string]: {
 		status: keyof typeof ResponseProtocol,
@@ -52,7 +57,10 @@ interface WorkbooksData {
 			[graph_type: string]: FormattedData
 		},
 		errors?: { [sheet: string]: SheetErrors } | string,
-	}
+	},
+	experimental?: {
+		data: TP
+	},
 }
 type DataElement = {
 	label: string,

@@ -30,18 +30,24 @@ export default function GraphPanel({ sheetsPayload, onWarning }: { sheetsPayload
 
 
 	const selectedGraphs = useMemo(() => {
-		const available_graphs = sheetsPayload?.data?.[workbook]?.['data']?.[graphType === 'tech_payments' ? 'individual_clients' : graphType] ?? {}
-		return graphs.reduce((previousValue: FormattedData, currentValue: string | undefined): FormattedData => {
-			if (currentValue === undefined) return previousValue
+		const available_graphs = (workbook === 'experimental') ? sheetsPayload?.data?.['experimental']?.['data'] ?? {} : sheetsPayload?.data?.[workbook]?.['data']?.[graphType === 'tech_payments' ? 'individual_clients' : graphType] ?? {}
 
-			previousValue[currentValue] = available_graphs[currentValue]
-			return previousValue
-		}, {})
+		if (workbook === 'experimental') {
+			return available_graphs[graphs[0] ?? '']
+		} else {
+			return graphs.reduce((previousValue: FormattedData, currentValue: string | undefined): FormattedData => {
+				if (currentValue === undefined) return previousValue
+
+				previousValue[currentValue] = available_graphs[currentValue]
+				return previousValue
+			}, {})
+		}
+
 	}, [graphType, graphs, sheetsPayload?.data, workbook])
 
 
 	const maxValue: number = useMemo(() => {
-		if (Object.keys(selectedGraphs).length < 1) return 0
+		if (Object.keys(selectedGraphs ?? {}).length < 1) return 0
 		let running: number[] = []
 		for (let c in selectedGraphs) {
 			running = [...running, ...selectedGraphs[c].map(e => e.value)]
@@ -49,13 +55,16 @@ export default function GraphPanel({ sheetsPayload, onWarning }: { sheetsPayload
 		return Math.max(...running)
 	}, [selectedGraphs])
 
-	const handleAddGraph = (g: string, p?:string) => {
+	const handleAddGraph = (g: string, p?: string) => {
 		const def = p ?? graphType
-		const graph_exists = (sheetsPayload?.data?.[workbook]?.['data']?.[def === 'tech_payments' ? 'individual_clients' : def] ?? {}).hasOwnProperty(g)
 
+		const graph_exists = (workbook === 'experimental') ? true : (sheetsPayload?.data?.[workbook]?.['data']?.[def === 'tech_payments' ? 'individual_clients' : def] ?? {}).hasOwnProperty(g)
+
+		if (workbook === 'experimental') {
+			setGraphs([g])
+		}
 		if (g !== null && g.length > 1 && !graphs.includes(g) && graph_exists) setGraphs((prev) => [g, ...prev])
 	}
-
 	const handleRemoveGraph = (g: string) => {
 		setGraphs(prev => prev.filter(e => e !== g))
 	}
@@ -122,7 +131,7 @@ export default function GraphPanel({ sheetsPayload, onWarning }: { sheetsPayload
 							isDefaultCollapsed={false}
 							documentOptions={Object.keys(sheetsPayload?.data ?? {})}
 							graphTypeOptions={Object.keys(sheetsPayload?.data?.[workbook]?.data ?? {})}
-							graphOptions={Object.keys(sheetsPayload?.data?.[workbook]?.data?.[graphType] ?? {})}
+							graphOptions={workbook === 'experimental' ? Object.keys(sheetsPayload?.data?.[workbook]?.data ?? {}) : Object.keys(sheetsPayload?.data?.[workbook]?.data?.[graphType] ?? {})}
 							onWorkbookChange={handleWorkbookChange}
 							onYRangeChange={setYRelative}
 							onGraphTypeChange={handleGraphTypeChange}
